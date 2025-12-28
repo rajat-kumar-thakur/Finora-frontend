@@ -105,9 +105,7 @@ export default function Layout({
         {/* Logo */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">F</span>
-            </div>
+            <img src="/icon.png" alt="Finora" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-lg text-foreground">Finora</span>
           </div>
         </div>

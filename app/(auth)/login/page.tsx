@@ -68,6 +68,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12] px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <img src="/icon.png" alt="Finora" className="w-10 h-10 rounded-lg" />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Finora
           </h1>

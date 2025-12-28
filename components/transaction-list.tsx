@@ -640,7 +640,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
               ) : (
                 // View Mode
                 <tr key={tx.id} className="hover:bg-accent/30 transition-colors">
-                  <td className="p-3 text-foreground">
+                  <td className="p-3 text-foreground whitespace-nowrap">
                     {new Date(tx.date).toLocaleDateString('en-IN', { 
                       day: '2-digit', 
                       month: 'short', 
@@ -648,11 +648,11 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     })}
                   </td>
                   <td className="p-3 text-foreground">
-                    <div className="max-w-md truncate" title={tx.description}>
+                    <div className="max-w-[300px] truncate whitespace-nowrap" style={{ direction: 'rtl', textAlign: 'left' }} title={tx.description}>
                       {tx.description}
                     </div>
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 whitespace-nowrap">
                     {editingCategoryId === tx.id ? (
                       <select
                         value={tx.category_id || ''}
@@ -671,13 +671,13 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     ) : (
                       <button
                         onClick={() => setEditingCategoryId(tx.id)}
-                        className="text-xs px-2 py-1 rounded bg-accent/50 hover:bg-accent text-foreground transition-colors"
+                        className="text-xs px-2 py-1 rounded bg-accent/50 hover:bg-accent text-foreground transition-colors whitespace-nowrap"
                       >
                         {category ? `${category.icon} ${category.name}` : 'Uncategorized'}
                       </button>
                     )}
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="p-3 text-right whitespace-nowrap">
                     <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
                       tx.transaction_type === 'credit' 
                         ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
@@ -686,15 +686,15 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                       {tx.transaction_type === 'credit' ? 'CR' : 'DR'}
                     </span>
                   </td>
-                  <td className={`p-3 text-right font-semibold ${
+                  <td className={`p-3 text-right font-semibold whitespace-nowrap ${
                     tx.transaction_type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </td>
-                  <td className="p-3 text-right text-foreground font-medium">
+                  <td className="p-3 text-right text-foreground font-medium whitespace-nowrap">
                     {tx.balance ? `₹${tx.balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 whitespace-nowrap">
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => startEdit(tx)}

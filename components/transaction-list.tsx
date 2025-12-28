@@ -40,10 +40,22 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     total: 0,
     total_pages: 0,
   })
+  
+  // Column filters
+  const [columnFilters, setColumnFilters] = useState({
+    date: '',
+    description: '',
+    category_id: '',
+    transaction_type: '',
+    amount_min: '',
+    amount_max: '',
+    balance_min: '',
+    balance_max: ''
+  })
 
   useEffect(() => {
     loadTransactions()
-  }, [filters, refreshTrigger])
+  }, [filters, refreshTrigger, columnFilters])
 
   useEffect(() => {
     loadCategories()
@@ -199,11 +211,41 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
     try {
       const currentPage = pageOverride || filters?.page || pagination.page || 1
-      const result = await transactionApi.list({
+      
+      // Build filter object including column filters
+      const filterParams: any = {
         ...filters,
         page: currentPage,
         page_size: filters?.page_size || 50,
-      })
+      }
+      
+      // Add column filters if they have values
+      if (columnFilters.description) {
+        filterParams.description = columnFilters.description
+      }
+      if (columnFilters.category_id) {
+        filterParams.category_id = columnFilters.category_id
+      }
+      if (columnFilters.transaction_type) {
+        filterParams.transaction_type = columnFilters.transaction_type
+      }
+      if (columnFilters.date) {
+        filterParams.date = columnFilters.date
+      }
+      if (columnFilters.amount_min) {
+        filterParams.amount_min = parseFloat(columnFilters.amount_min)
+      }
+      if (columnFilters.amount_max) {
+        filterParams.amount_max = parseFloat(columnFilters.amount_max)
+      }
+      if (columnFilters.balance_min) {
+        filterParams.balance_min = parseFloat(columnFilters.balance_min)
+      }
+      if (columnFilters.balance_max) {
+        filterParams.balance_max = parseFloat(columnFilters.balance_max)
+      }
+      
+      const result = await transactionApi.list(filterParams)
       
       setTransactions(result.transactions)
       setPagination(result.pagination)
@@ -309,6 +351,110 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
               <th className="text-right p-3 font-semibold text-foreground">Amount</th>
               <th className="text-right p-3 font-semibold text-foreground">Balance</th>
               <th className="text-center p-3 font-semibold text-foreground">Actions</th>
+            </tr>
+            {/* Filter Row */}
+            <tr className="bg-accent/20">
+              <th className="p-2">
+                <input
+                  type="date"
+                  value={columnFilters.date}
+                  onChange={(e) => setColumnFilters({ ...columnFilters, date: e.target.value })}
+                  className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                  placeholder="Filter date"
+                />
+              </th>
+              <th className="p-2">
+                <input
+                  type="text"
+                  value={columnFilters.description}
+                  onChange={(e) => setColumnFilters({ ...columnFilters, description: e.target.value })}
+                  className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                  placeholder="Search..."
+                />
+              </th>
+              <th className="p-2">
+                <select
+                  value={columnFilters.category_id}
+                  onChange={(e) => setColumnFilters({ ...columnFilters, category_id: e.target.value })}
+                  className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                >
+                  <option value="">All</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon} {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </th>
+              <th className="p-2">
+                <select
+                  value={columnFilters.transaction_type}
+                  onChange={(e) => setColumnFilters({ ...columnFilters, transaction_type: e.target.value })}
+                  className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                >
+                  <option value="">All</option>
+                  <option value="credit">Credit</option>
+                  <option value="debit">Debit</option>
+                </select>
+              </th>
+              <th className="p-2">
+                <div className="flex gap-1">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={columnFilters.amount_min}
+                    onChange={(e) => setColumnFilters({ ...columnFilters, amount_min: e.target.value })}
+                    className="w-1/2 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    placeholder="Min"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={columnFilters.amount_max}
+                    onChange={(e) => setColumnFilters({ ...columnFilters, amount_max: e.target.value })}
+                    className="w-1/2 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    placeholder="Max"
+                  />
+                </div>
+              </th>
+              <th className="p-2">
+                <div className="flex gap-1">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={columnFilters.balance_min}
+                    onChange={(e) => setColumnFilters({ ...columnFilters, balance_min: e.target.value })}
+                    className="w-1/2 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    placeholder="Min"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={columnFilters.balance_max}
+                    onChange={(e) => setColumnFilters({ ...columnFilters, balance_max: e.target.value })}
+                    className="w-1/2 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    placeholder="Max"
+                  />
+                </div>
+              </th>
+              <th className="p-2">
+                <button
+                  onClick={() => setColumnFilters({
+                    date: '',
+                    description: '',
+                    category_id: '',
+                    transaction_type: '',
+                    amount_min: '',
+                    amount_max: '',
+                    balance_min: '',
+                    balance_max: ''
+                  })}
+                  className="w-full px-2 py-1 text-xs bg-primary/10 hover:bg-primary/20 text-primary rounded transition-colors"
+                  title="Clear all filters"
+                >
+                  Clear
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

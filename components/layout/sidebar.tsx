@@ -17,6 +17,9 @@ import {
   Settings,
   HelpCircle,
   Menu,
+  Upload,
+  FolderKanban,
+  BarChart3,
 } from "lucide-react"
 
 import Link from "next/link"
@@ -106,11 +109,14 @@ export default function Sidebar() {
                   <NavItem href="/dashboard" icon={LayoutDashboard}>
                     Dashboard
                   </NavItem>
-                  <NavItem href="/accounts" icon={Wallet} disabled>
-                    Accounts
+                  <NavItem href="/upload" icon={Upload}>
+                    Upload
                   </NavItem>
-                  <NavItem href="/transactions" icon={ArrowLeftRight} disabled>
+                  <NavItem href="/transactions" icon={ArrowLeftRight}>
                     Transactions
+                  </NavItem>
+                  <NavItem href="/categories" icon={FolderKanban}>
+                    Categories
                   </NavItem>
                 </div>
               </div>
@@ -118,27 +124,30 @@ export default function Sidebar() {
               {/* Financial Planning */}
               <div>
                 <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Planning
+                  Analytics
                 </div>
                 <div className="space-y-1">
+                  <NavItem href="/insights" icon={BarChart3}>
+                    Insights
+                  </NavItem>
                   <NavItem href="/budgets" icon={Target} disabled>
                     Budgets
                   </NavItem>
                   <NavItem href="/goals" icon={TrendingUp} disabled>
                     Goals
                   </NavItem>
-                  <NavItem href="/insights" icon={TrendingUp} disabled>
-                    Insights
-                  </NavItem>
                 </div>
               </div>
 
-              {/* Payment Methods */}
+              {/* Coming Soon */}
               <div>
                 <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Payment
+                  Coming Soon
                 </div>
                 <div className="space-y-1">
+                  <NavItem href="/accounts" icon={Wallet} disabled>
+                    Accounts
+                  </NavItem>
                   <NavItem href="/cards" icon={CreditCard} disabled>
                     Cards
                   </NavItem>

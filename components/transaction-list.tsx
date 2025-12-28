@@ -1,0 +1,439 @@
+"use client"
+
+/**
+ * Transaction List Component
+ * 
+ * Displays paginated list of transactions with inline editing.
+ */
+
+import { useState, useEffect } from 'react'
+import { transactionApi, categoryApi, type Transaction, type TransactionFilter, type Category } from '@/lib/api'
+
+interface TransactionListProps {
+  filters?: TransactionFilter
+  refreshTrigger?: number
+  onUpdate?: () => void  // Callback to refresh parent component
+  compact?: boolean  // Compact view for dashboard
+}
+
+export function TransactionList({ filters, refreshTrigger, onUpdate, compact = false }: TransactionListProps) {
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<any>({})
+  const [saving, setSaving] = useState(false)
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    page_size: 50,
+    total: 0,
+    total_pages: 0,
+  })
+
+  useEffect(() => {
+    loadTransactions()
+    loadCategories()
+  }, [filters, refreshTrigger])
+
+  const loadCategories = async () => {
+    try {
+      const data = await categoryApi.list()
+      setCategories(data)
+    } catch (err) {
+      console.error('Failed to load categories:', err)
+    }
+  }
+
+  const startEdit = (tx: Transaction) => {
+    setEditingId(tx.id)
+    setEditForm({
+      date: tx.date.split('T')[0],
+      description: tx.description,
+      amount: tx.amount,
+      transaction_type: tx.transaction_type,
+      category_id: tx.category_id || '',
+      balance: tx.balance || '',
+    })
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditForm({})
+  }
+
+  const saveEdit = async (id: string) => {
+    setSaving(true)
+    try {
+      await transactionApi.update(id, {
+        date: editForm.date,
+        description: editForm.description,
+        amount: parseFloat(editForm.amount),
+        transaction_type: editForm.transaction_type,
+        category_id: editForm.category_id || undefined,
+        balance: editForm.balance ? parseFloat(editForm.balance) : undefined,
+      })
+      await loadTransactions()
+      setEditingId(null)
+      setEditForm({})
+      if (onUpdate) onUpdate()  // Refresh parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const deleteTransaction = async (id: string, description: string) => {
+    try {
+      await transactionApi.delete(id)
+      await loadTransactions()
+      if (onUpdate) onUpdate()  // Refresh parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete')
+    }
+  }
+
+  const updateCategory = async (transactionId: string, categoryId: string) => {
+    try {
+      await transactionApi.update(transactionId, { category_id: categoryId })
+      await loadTransactions()
+      setEditingCategoryId(null)
+      if (onUpdate) onUpdate()  // Refresh parent component
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update category')
+    }
+  }
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > pagination.total_pages) return
+    
+    // Update pagination state immediately for UI responsiveness
+    setPagination(prev => ({ ...prev, page: newPage }))
+    
+    // Reload transactions with new page
+    // Note: We need to call loadTransactions with the new page
+    // Since loadTransactions uses the state or props, we'll modify it to accept page param
+    loadTransactions(newPage)
+  }
+
+  // Modified loadTransactions to accept optional page override
+  const loadTransactions = async (pageOverride?: number) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const currentPage = pageOverride || filters?.page || pagination.page || 1
+      const result = await transactionApi.list({
+        ...filters,
+        page: currentPage,
+        page_size: filters?.page_size || 50,
+      })
+      
+      setTransactions(result.transactions)
+      setPagination(result.pagination)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load transactions')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-800">{error}</p>
+      </div>
+    )
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-4xl mb-3">📊</div>
+        <p className="text-sm text-muted-foreground">No transactions yet</p>
+        <p className="text-xs text-muted-foreground/70 mt-1">Upload a statement to get started</p>
+      </div>
+    )
+  }
+
+  // Compact view for dashboard
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        {transactions.map((tx) => {
+          const category = categories.find(c => c.id === tx.category_id)
+          return (
+            <div
+              key={tx.id}
+              className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/30 transition-colors"
+            >
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                  tx.transaction_type === 'credit' ? 'bg-green-500/10' : 'bg-red-500/10'
+                }`}>
+                  <svg className={`w-4 h-4 ${tx.transaction_type === 'credit' ? 'text-green-500' : 'text-red-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {tx.transaction_type === 'credit' ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                    )}
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-xs truncate text-foreground">{tx.description}</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(tx.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                    </span>
+                    {category && (
+                      <span className="text-xs text-muted-foreground">• {category.icon} {category.name}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className={`text-xs font-semibold flex-shrink-0 ${
+                tx.transaction_type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              }`}>
+                {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Table View */}
+      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-accent/30 border-b border-border">
+            <tr>
+              <th className="text-left p-3 font-semibold text-foreground">Date</th>
+              <th className="text-left p-3 font-semibold text-foreground">Description</th>
+              <th className="text-left p-3 font-semibold text-foreground">Category</th>
+              <th className="text-right p-3 font-semibold text-foreground">Type</th>
+              <th className="text-right p-3 font-semibold text-foreground">Amount</th>
+              <th className="text-right p-3 font-semibold text-foreground">Balance</th>
+              <th className="text-center p-3 font-semibold text-foreground">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {transactions.map((tx) => {
+              const isEditing = editingId === tx.id
+              const category = categories.find(c => c.id === tx.category_id)
+              
+              return isEditing ? (
+                // Edit Mode
+                <tr key={tx.id} className="bg-primary/5">
+                  <td className="p-2">
+                    <input
+                      type="date"
+                      value={editForm.date}
+                      onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      type="text"
+                      value={editForm.description}
+                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <select
+                      value={editForm.category_id}
+                      onChange={(e) => setEditForm({ ...editForm, category_id: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    >
+                      <option value="">Uncategorized</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.icon} {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-2">
+                    <select
+                      value={editForm.transaction_type}
+                      onChange={(e) => setEditForm({ ...editForm, transaction_type: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    >
+                      <option value="debit">Debit</option>
+                      <option value="credit">Credit</option>
+                    </select>
+                  </td>
+                  <td className="p-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editForm.amount}
+                      onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground text-right"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editForm.balance || ''}
+                      onChange={(e) => setEditForm({ ...editForm, balance: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground text-right"
+                      placeholder="Optional"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => saveEdit(tx.id)}
+                        disabled={saving}
+                        className="px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="px-2 py-1 bg-accent text-foreground text-xs rounded hover:bg-accent/80"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                // View Mode
+                <tr key={tx.id} className="hover:bg-accent/30 transition-colors">
+                  <td className="p-3 text-foreground">
+                    {new Date(tx.date).toLocaleDateString('en-IN', { 
+                      day: '2-digit', 
+                      month: 'short', 
+                      year: 'numeric' 
+                    })}
+                  </td>
+                  <td className="p-3 text-foreground">
+                    <div className="max-w-md truncate" title={tx.description}>
+                      {tx.description}
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    {editingCategoryId === tx.id ? (
+                      <select
+                        value={tx.category_id || ''}
+                        onChange={(e) => updateCategory(tx.id, e.target.value)}
+                        onBlur={() => setEditingCategoryId(null)}
+                        className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                        autoFocus
+                      >
+                        <option value="">Uncategorized</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.icon} {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setEditingCategoryId(tx.id)}
+                        className="text-xs px-2 py-1 rounded bg-accent/50 hover:bg-accent text-foreground transition-colors"
+                      >
+                        {category ? `${category.icon} ${category.name}` : 'Uncategorized'}
+                      </button>
+                    )}
+                  </td>
+                  <td className="p-3 text-right">
+                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                      tx.transaction_type === 'credit' 
+                        ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                        : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                    }`}>
+                      {tx.transaction_type === 'credit' ? 'CR' : 'DR'}
+                    </span>
+                  </td>
+                  <td className={`p-3 text-right font-semibold ${
+                    tx.transaction_type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="p-3 text-right text-foreground font-medium">
+                    {tx.balance ? `₹${tx.balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => startEdit(tx)}
+                        className="p-1 hover:bg-accent rounded transition-colors"
+                        title="Edit"
+                      >
+                        <svg className="w-4 h-4 text-muted-foreground hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Delete transaction: ${tx.description}?`)) {
+                            deleteTransaction(tx.id, tx.description)
+                          }
+                        }}
+                        className="p-1 hover:bg-accent rounded transition-colors"
+                        title="Delete"
+                      >
+                        <svg className="w-4 h-4 text-muted-foreground hover:text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination Info & Controls */}
+      {pagination.total > 0 && (
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          <div className="text-xs text-muted-foreground">
+            Showing {transactions.length} of {pagination.total} transactions
+          </div>
+          
+          {pagination.total_pages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="px-3 py-1 text-xs font-medium rounded-md border border-border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <span className="text-xs font-medium text-foreground">
+                Page {pagination.page} of {pagination.total_pages}
+              </span>
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.total_pages}
+                className="px-3 py-1 text-xs font-medium rounded-md border border-border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

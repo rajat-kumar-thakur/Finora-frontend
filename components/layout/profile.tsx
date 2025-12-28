@@ -9,7 +9,7 @@
 import { LogOut, Settings, FileText, User } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { getCurrentUserProfile, type UserProfile } from "@/lib/api/auth"
+import { getCurrentUserProfile, type UserProfile, getAccessToken } from "@/lib/api/auth"
 import { logoutUser } from "@/lib/auth"
 
 interface MenuItem {
@@ -25,10 +25,17 @@ export default function Profile() {
   useEffect(() => {
     async function loadUser() {
       try {
+        // Only load user if authenticated with a valid token
+        const token = getAccessToken()
+        if (!token || token.trim() === '') {
+          setLoading(false)
+          return
+        }
+        
         const profile = await getCurrentUserProfile()
         setUser(profile)
       } catch (error) {
-        console.error('Failed to load user profile:', error)
+        // Silently fail - user might not be logged in or token is invalid
       } finally {
         setLoading(false)
       }

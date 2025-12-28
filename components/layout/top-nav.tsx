@@ -12,7 +12,7 @@ import { Bell, ChevronRight } from "lucide-react"
 import Profile from "@/components/layout/profile"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { getCurrentUserProfile, type UserProfile } from "@/lib/api/auth"
+import { getCurrentUserProfile, type UserProfile, getAccessToken } from "@/lib/api/auth"
 
 interface BreadcrumbItem {
   label: string
@@ -29,10 +29,17 @@ export default function TopNav({ breadcrumbs = [] }: TopNavProps) {
   useEffect(() => {
     async function loadUser() {
       try {
+        // Only load user if authenticated with a valid token
+        const token = getAccessToken()
+        if (!token || token.trim() === '') {
+          return
+        }
+        
         const profile = await getCurrentUserProfile()
         setUser(profile)
       } catch (error) {
-        console.error('Failed to load user profile:', error)
+        // Silently fail - user might not be logged in or token is invalid
+        // Don't log to console to avoid cluttering the console
       }
     }
     

@@ -17,7 +17,7 @@ interface TransactionEditModalProps {
 
 export function TransactionEditModal({ transaction, onClose, onSaved }: TransactionEditModalProps) {
   const [formData, setFormData] = useState<TransactionCreate>({
-    date: new Date(transaction.date),
+    date: new Date(transaction.date).toISOString().split('T')[0],
     description: transaction.description,
     amount: transaction.amount,
     transaction_type: transaction.transaction_type as 'debit' | 'credit',
@@ -100,8 +100,8 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
             </label>
             <input
               type="date"
-              value={formData.date.toISOString().split('T')[0]}
-              onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value) })}
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
               required
             />

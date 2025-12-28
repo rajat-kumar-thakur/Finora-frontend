@@ -16,6 +16,7 @@ export interface Transaction {
   category_name: string | null
   balance: number | null
   source: 'pdf' | 'manual'
+  raw_text?: string
   created_at: string
 }
 
@@ -24,6 +25,17 @@ export interface TransactionCreate {
   description: string
   amount: number
   transaction_type: 'debit' | 'credit'
+  category_id?: string
+  balance?: number
+  source?: 'pdf' | 'manual'
+  raw_text?: string
+}
+
+export interface TransactionUpdate {
+  date?: string
+  description?: string
+  amount?: number
+  transaction_type?: 'debit' | 'credit'
   category_id?: string
   balance?: number
   source?: 'pdf' | 'manual'
@@ -77,7 +89,7 @@ export const transactionApi = {
   /**
    * Update a transaction
    */
-  update: async (id: string, data: TransactionCreate): Promise<Transaction> => {
+  update: async (id: string, data: TransactionUpdate): Promise<Transaction> => {
     return apiClient.put<Transaction>(`/api/v1/transactions/${id}`, data)
   },
 

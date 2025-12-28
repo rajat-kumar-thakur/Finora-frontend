@@ -34,7 +34,7 @@ export default function Profile() {
         
         const profile = await getCurrentUserProfile()
         setUser(profile)
-      } catch (error) {
+      } catch {
         // Silently fail - user might not be logged in or token is invalid
       } finally {
         setLoading(false)

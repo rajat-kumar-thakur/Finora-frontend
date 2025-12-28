@@ -6,14 +6,14 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { login, type LoginData } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
 import { isAuthenticated } from '@/lib/auth'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState<LoginData>({
@@ -158,5 +158,16 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12]">
+        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

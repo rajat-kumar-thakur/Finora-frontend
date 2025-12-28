@@ -22,7 +22,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState<any>({})
+  const [editForm, setEditForm] = useState<Record<string, string | number | undefined>>({})
   const [saving, setSaving] = useState(false)
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
@@ -97,10 +97,10 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     setEditForm({
       date: tx.date.split('T')[0],
       description: tx.description,
-      amount: tx.amount,
+      amount: String(tx.amount),
       transaction_type: tx.transaction_type,
       category_id: tx.category_id || '',
-      balance: tx.balance || '',
+      balance: tx.balance !== null ? String(tx.balance) : '',
     })
   }
 
@@ -113,12 +113,12 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     setSaving(true)
     try {
       await transactionApi.update(id, {
-        date: editForm.date,
-        description: editForm.description,
-        amount: parseFloat(editForm.amount),
-        transaction_type: editForm.transaction_type,
-        category_id: editForm.category_id || undefined,
-        balance: editForm.balance ? parseFloat(editForm.balance) : undefined,
+        date: editForm.date as string,
+        description: editForm.description as string,
+        amount: parseFloat(editForm.amount as string),
+        transaction_type: editForm.transaction_type as 'debit' | 'credit',
+        category_id: editForm.category_id ? String(editForm.category_id) : undefined,
+        balance: editForm.balance ? parseFloat(editForm.balance as string) : undefined,
       })
       await loadTransactions()
       setEditingId(null)
@@ -163,7 +163,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     }
   }
 
-  const deleteTransaction = async (id: string, description: string) => {
+  const deleteTransaction = async (id: string) => {
     try {
       await transactionApi.delete(id)
       await loadTransactions()
@@ -213,7 +213,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       const currentPage = pageOverride || filters?.page || pagination.page || 1
       
       // Build filter object including column filters
-      const filterParams: any = {
+      const filterParams: Record<string, string | number | undefined> = {
         ...filters,
         page: currentPage,
         page_size: filters?.page_size || 50,
@@ -708,7 +708,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                       <button
                         onClick={() => {
                           if (confirm(`Delete transaction: ${tx.description}?`)) {
-                            deleteTransaction(tx.id, tx.description)
+                            deleteTransaction(tx.id)
                           }
                         }}
                         className="p-1 hover:bg-accent rounded transition-colors"

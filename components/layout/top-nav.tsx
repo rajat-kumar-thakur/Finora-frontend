@@ -37,7 +37,7 @@ export default function TopNav({ breadcrumbs = [] }: TopNavProps) {
         
         const profile = await getCurrentUserProfile()
         setUser(profile)
-      } catch (error) {
+      } catch {
         // Silently fail - user might not be logged in or token is invalid
         // Don't log to console to avoid cluttering the console
       }

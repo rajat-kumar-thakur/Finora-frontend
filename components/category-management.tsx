@@ -64,7 +64,7 @@ export function CategoryManagement() {
     }
   }
 
-  const handleDelete = async (categoryId: string, categoryName: string) => {
+  const handleDelete = async (categoryId: string) => {
     setDeleting(categoryId)
     setError(null)
 
@@ -102,7 +102,7 @@ export function CategoryManagement() {
       await categoryApi.update(categoryId, {
         name: editForm.name,
         color: editForm.color,
-        icon: editForm.icon,
+        icon: editForm.icon || undefined,
       })
       setEditingId(null)
       setEditForm(null)
@@ -223,7 +223,7 @@ export function CategoryManagement() {
                       className="w-full h-8 border border-border rounded"
                     />
                     <select
-                      value={editForm.icon}
+                      value={editForm.icon || ''}
                       onChange={(e) => setEditForm({ ...editForm, icon: e.target.value })}
                       className="w-full px-2 py-1 border border-border rounded text-sm bg-background text-foreground"
                     >
@@ -315,7 +315,7 @@ export function CategoryManagement() {
                         className="w-full h-8 border border-border rounded"
                       />
                       <select
-                        value={editForm.icon}
+                        value={editForm.icon || ''}
                         onChange={(e) => setEditForm({ ...editForm, icon: e.target.value })}
                         className="w-full px-2 py-1 border border-border rounded text-sm bg-background text-foreground"
                       >
@@ -381,7 +381,7 @@ export function CategoryManagement() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(category.id, category.name)}
+                        onClick={() => handleDelete(category.id)}
                         disabled={deleting === category.id}
                         className="flex-shrink-0 p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
                         title="Delete category"

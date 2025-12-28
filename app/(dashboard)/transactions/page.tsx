@@ -8,8 +8,18 @@
 
 import { TransactionList } from '@/components/transaction-list'
 import { ExportButton } from '@/components/export-button'
+import { TransactionCreateModal } from '@/components/transaction-create-modal'
+import { useState } from 'react'
 
 export default function TransactionsPage() {
+  const [showCreate, setShowCreate] = useState(false)
+  const [refresh, setRefresh] = useState(0)
+
+  const handleCreated = () => {
+    setShowCreate(false)
+    setRefresh((n) => n + 1)
+  }
+
   return (
     <div className="space-y-4 p-4 lg:p-6">
       {/* Header */}
@@ -23,11 +33,26 @@ export default function TransactionsPage() {
           </p>
         </div>
 
-        <ExportButton />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium"
+          >
+            + Add Transaction
+          </button>
+          <ExportButton />
+        </div>
       </div>
 
       {/* Transaction List */}
-      <TransactionList filters={{ page: 1, page_size: 50 }} />
+      <TransactionList filters={{ page: 1, page_size: 50 }} refreshTrigger={refresh} />
+
+      {showCreate && (
+        <TransactionCreateModal
+          onClose={() => setShowCreate(false)}
+          onSaved={handleCreated}
+        />
+      )}
     </div>
   )
 }

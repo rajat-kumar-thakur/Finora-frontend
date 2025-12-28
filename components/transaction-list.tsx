@@ -25,6 +25,15 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
   const [editForm, setEditForm] = useState<any>({})
   const [saving, setSaving] = useState(false)
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
+  const [newTransaction, setNewTransaction] = useState({
+    date: new Date().toISOString().split('T')[0],
+    description: '',
+    amount: '',
+    transaction_type: 'debit',
+    category_id: '',
+    balance: ''
+  })
   const [pagination, setPagination] = useState({
     page: 1,
     page_size: 50,
@@ -34,8 +43,33 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
   useEffect(() => {
     loadTransactions()
-    loadCategories()
   }, [filters, refreshTrigger])
+
+  useEffect(() => {
+    loadCategories()
+  }, [refreshTrigger])
+
+  // Auto-calculate balance when adding new transaction
+  useEffect(() => {
+    if (isAdding && newTransaction.amount && pagination.page === 1) {
+      const amount = parseFloat(newTransaction.amount)
+      if (!isNaN(amount)) {
+        // Use the latest transaction's balance as the starting point
+        // If no transactions exist, assume 0
+        const latestTx = transactions[0]
+        const currentBalance = latestTx?.balance || 0
+        
+        const newBalance = newTransaction.transaction_type === 'credit' 
+          ? currentBalance + amount 
+          : currentBalance - amount
+          
+        setNewTransaction(prev => ({
+          ...prev,
+          balance: newBalance.toFixed(2)
+        }))
+      }
+    }
+  }, [newTransaction.amount, newTransaction.transaction_type, isAdding, transactions, pagination.page])
 
   const loadCategories = async () => {
     try {
@@ -85,6 +119,38 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     }
   }
 
+  const handleSaveNew = async () => {
+    if (!newTransaction.description || !newTransaction.amount) return
+    
+    setSaving(true)
+    try {
+      await transactionApi.create({
+        date: newTransaction.date,
+        description: newTransaction.description,
+        amount: parseFloat(newTransaction.amount),
+        transaction_type: newTransaction.transaction_type as 'credit' | 'debit',
+        category_id: newTransaction.category_id || undefined,
+        balance: newTransaction.balance ? parseFloat(newTransaction.balance) : undefined,
+      })
+      
+      await loadTransactions()
+      setIsAdding(false)
+      setNewTransaction({
+        date: new Date().toISOString().split('T')[0],
+        description: '',
+        amount: '',
+        transaction_type: 'debit',
+        category_id: '',
+        balance: ''
+      })
+      if (onUpdate) onUpdate()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create transaction')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const deleteTransaction = async (id: string, description: string) => {
     try {
       await transactionApi.delete(id)
@@ -96,12 +162,20 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
   }
 
   const updateCategory = async (transactionId: string, categoryId: string) => {
+    // Optimistically update in place to avoid full reload flicker
+    const previous = transactions
+    setTransactions(prev => prev.map(tx => tx.id === transactionId
+      ? { ...tx, category_id: categoryId || null }
+      : tx
+    ))
+    setEditingCategoryId(null)
+
     try {
-      await transactionApi.update(transactionId, { category_id: categoryId })
-      await loadTransactions()
-      setEditingCategoryId(null)
+      await transactionApi.update(transactionId, { category_id: categoryId || undefined })
       if (onUpdate) onUpdate()  // Refresh parent component
     } catch (err) {
+      // Revert on failure
+      setTransactions(previous)
       setError(err instanceof Error ? err.message : 'Failed to update category')
     }
   }
@@ -156,12 +230,20 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     )
   }
 
-  if (transactions.length === 0) {
+  if (transactions.length === 0 && !isAdding) {
     return (
       <div className="text-center py-8">
         <div className="text-4xl mb-3">📊</div>
         <p className="text-sm text-muted-foreground">No transactions yet</p>
-        <p className="text-xs text-muted-foreground/70 mt-1">Upload a statement to get started</p>
+        <p className="text-xs text-muted-foreground/70 mt-1">Upload a statement or add manually</p>
+        {!compact && (
+          <button 
+            onClick={() => setIsAdding(true)}
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
+          >
+            Add Transaction
+          </button>
+        )}
       </div>
     )
   }
@@ -230,6 +312,101 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
+            {/* Add New Row */}
+            {!compact && (
+              isAdding ? (
+                <tr className="bg-primary/5 border-b-2 border-primary/20">
+                  <td className="p-2">
+                    <input
+                      type="date"
+                      value={newTransaction.date}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      type="text"
+                      value={newTransaction.description}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
+                      placeholder="Description"
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                      autoFocus
+                    />
+                  </td>
+                  <td className="p-2">
+                    <select
+                      value={newTransaction.category_id}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, category_id: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    >
+                      <option value="">Uncategorized</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.icon} {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-2">
+                    <select
+                      value={newTransaction.transaction_type}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, transaction_type: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    >
+                      <option value="debit">Debit</option>
+                      <option value="credit">Credit</option>
+                    </select>
+                  </td>
+                  <td className="p-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newTransaction.amount}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
+                      placeholder="0.00"
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground text-right"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newTransaction.balance}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, balance: e.target.value })}
+                      placeholder="Optional"
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground text-right"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={handleSaveNew}
+                        disabled={saving || !newTransaction.description || !newTransaction.amount}
+                        className="px-2 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        Add
+                      </button>
+                      <button
+                        onClick={() => setIsAdding(false)}
+                        className="px-2 py-1 bg-accent text-foreground text-xs rounded hover:bg-accent/80"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <tr 
+                  className="hover:bg-accent/50 cursor-pointer border-b border-border border-dashed transition-colors"
+                  onClick={() => setIsAdding(true)}
+                >
+                  <td colSpan={7} className="p-2 text-center text-xs text-muted-foreground hover:text-primary font-medium">
+                    + Add new transaction
+                  </td>
+                </tr>
+              )
+            )}
             {transactions.map((tx) => {
               const isEditing = editingId === tx.id
               const category = categories.find(c => c.id === tx.category_id)

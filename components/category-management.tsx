@@ -220,12 +220,12 @@ export function CategoryManagement() {
                       type="color"
                       value={editForm.color}
                       onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}
-                      className="w-full h-8 border border-gray-300 rounded"
+                      className="w-full h-8 border border-border rounded"
                     />
                     <select
                       value={editForm.icon}
                       onChange={(e) => setEditForm({ ...editForm, icon: e.target.value })}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                      className="w-full px-2 py-1 border border-border rounded text-sm bg-background text-foreground"
                     >
                       <option value="">Select icon</option>
                       <option value="🍽️">🍽️ Food</option>
@@ -247,14 +247,14 @@ export function CategoryManagement() {
                     <button
                       onClick={() => handleUpdate(category.id)}
                       disabled={updating}
-                      className="flex-1 px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-gray-400"
+                      className="flex-1 px-2 py-1 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90 disabled:opacity-50"
                     >
                       {updating ? 'Saving...' : 'Save'}
                     </button>
                     <button
                       onClick={handleCancelEdit}
                       disabled={updating}
-                      className="flex-1 px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
+                      className="flex-1 px-2 py-1 bg-accent text-accent-foreground rounded text-sm hover:bg-accent/80"
                     >
                       Cancel
                     </button>
@@ -262,7 +262,7 @@ export function CategoryManagement() {
                 </div>
               ) : (
                 // View Mode
-                <div className="flex items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors group">
+                <div className="flex items-center justify-between gap-2 p-3 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors group">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0"
@@ -270,13 +270,13 @@ export function CategoryManagement() {
                     >
                       {category.icon || '📌'}
                     </div>
-                    <span className="text-sm font-medium text-gray-900 truncate">
+                    <span className="text-sm font-medium text-card-foreground truncate">
                       {category.name}
                     </span>
                   </div>
                   <button
                     onClick={() => handleEdit(category)}
-                    className="flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                    className="flex-shrink-0 p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors opacity-0 group-hover:opacity-100"
                     title="Edit category"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,18 +293,18 @@ export function CategoryManagement() {
       {/* User Categories */}
       {userCategories.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Custom Categories</h3>
+          <h3 className="text-sm font-medium text-foreground mb-3">Custom Categories</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {userCategories.map((category) => (
               <div key={category.id}>
                 {editingId === category.id && editForm ? (
                   // Edit Mode
-                  <div className="p-3 bg-blue-50 border-2 border-blue-300 rounded-lg space-y-2">
+                  <div className="p-3 bg-primary/5 border-2 border-primary/20 rounded-lg space-y-2">
                     <input
                       type="text"
                       value={editForm.name}
                       onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                      className="w-full px-2 py-1 border border-border rounded text-sm bg-background text-foreground"
                       placeholder="Category name"
                     />
                     <div className="grid grid-cols-2 gap-2">
@@ -312,12 +312,12 @@ export function CategoryManagement() {
                         type="color"
                         value={editForm.color}
                         onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}
-                        className="w-full h-8 border border-gray-300 rounded"
+                        className="w-full h-8 border border-border rounded"
                       />
                       <select
                         value={editForm.icon}
                         onChange={(e) => setEditForm({ ...editForm, icon: e.target.value })}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        className="w-full px-2 py-1 border border-border rounded text-sm bg-background text-foreground"
                       >
                         <option value="">Select icon</option>
                         <option value="🍽️">🍽️ Food</option>
@@ -343,14 +343,14 @@ export function CategoryManagement() {
                       <button
                         onClick={() => handleUpdate(category.id)}
                         disabled={updating}
-                        className="flex-1 px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-gray-400"
+                        className="flex-1 px-2 py-1 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90 disabled:opacity-50"
                       >
                         {updating ? 'Saving...' : 'Save'}
                       </button>
                       <button
                         onClick={handleCancelEdit}
                         disabled={updating}
-                        className="flex-1 px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
+                        className="flex-1 px-2 py-1 bg-accent text-accent-foreground rounded text-sm hover:bg-accent/80"
                       >
                         Cancel
                       </button>
@@ -358,7 +358,7 @@ export function CategoryManagement() {
                   </div>
                 ) : (
                   // View Mode
-                  <div className="flex items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg hover:border-red-300 transition-colors group">
+                  <div className="flex items-center justify-between gap-2 p-3 bg-card border border-border rounded-lg hover:border-destructive/50 transition-colors group">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0"
@@ -366,14 +366,14 @@ export function CategoryManagement() {
                       >
                         {category.icon || '📌'}
                       </div>
-                      <span className="text-sm font-medium text-gray-900 truncate">
+                      <span className="text-sm font-medium text-card-foreground truncate">
                         {category.name}
                       </span>
                     </div>
                     <div className="flex gap-1">
                       <button
                         onClick={() => handleEdit(category)}
-                        className="flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                        className="flex-shrink-0 p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors opacity-0 group-hover:opacity-100"
                         title="Edit category"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,11 +383,11 @@ export function CategoryManagement() {
                       <button
                         onClick={() => handleDelete(category.id, category.name)}
                         disabled={deleting === category.id}
-                        className="flex-shrink-0 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        className="flex-shrink-0 p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
                         title="Delete category"
                       >
                         {deleting === category.id ? (
-                          <div className="animate-spin h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full" />
+                          <div className="animate-spin h-4 w-4 border-2 border-destructive border-t-transparent rounded-full" />
                         ) : (
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

@@ -5,6 +5,7 @@
  */
 
 import { env } from '@/lib/config/env'
+import { getAccessToken } from '@/lib/api/auth'
 
 export interface ExportFilters {
   start_date?: string
@@ -21,7 +22,7 @@ export const exportApi = {
     const params = new URLSearchParams(filters as Record<string, string>)
     const url = `${env.apiBaseUrl}/api/v1/export/pdf?${params.toString()}`
 
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
 
     const response = await fetch(url, {
       headers: {
@@ -43,7 +44,7 @@ export const exportApi = {
     const params = new URLSearchParams(filters as Record<string, string>)
     const url = `${env.apiBaseUrl}/api/v1/export/excel?${params.toString()}`
 
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
 
     const response = await fetch(url, {
       headers: {
@@ -65,7 +66,7 @@ export const exportApi = {
     const params = new URLSearchParams(filters as Record<string, string>)
     const url = `${env.apiBaseUrl}/api/v1/export/csv?${params.toString()}`
 
-    const token = localStorage.getItem('access_token')
+    const token = getAccessToken()
 
     const response = await fetch(url, {
       headers: {

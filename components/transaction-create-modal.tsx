@@ -1,37 +1,55 @@
 "use client"
 
 /**
- * Transaction Edit Modal Component
- * 
- * Modal for editing transaction details.
+ * Transaction Create Modal Component
+ *
+ * Modal for manually adding a transaction.
  */
 
 import { useState, useEffect } from 'react'
-import { transactionApi, categoryApi, type Transaction, type TransactionCreate, type Category } from '@/lib/api'
+import { transactionApi, categoryApi, type TransactionCreate, type Category } from '@/lib/api'
 
-interface TransactionEditModalProps {
-  transaction: Transaction
+interface TransactionCreateModalProps {
   onClose: () => void
   onSaved: () => void
 }
 
-export function TransactionEditModal({ transaction, onClose, onSaved }: TransactionEditModalProps) {
+export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateModalProps) {
   const [formData, setFormData] = useState<TransactionCreate>({
-    date: new Date(transaction.date),
-    description: transaction.description,
-    amount: transaction.amount,
-    transaction_type: transaction.transaction_type as 'debit' | 'credit',
-    category_id: transaction.category_id || undefined,
-    source: transaction.source,
-    raw_text: transaction.raw_text,
+    date: new Date().toISOString(),
+    description: '',
+    amount: 0,
+    transaction_type: 'debit',
+    category_id: undefined,
+    balance: undefined,
+    source: 'manual',
+    raw_text: undefined,
   })
   const [categories, setCategories] = useState<Category[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [latestBalance, setLatestBalance] = useState<number | null>(null)
 
   useEffect(() => {
     loadCategories()
+    loadLatestBalance()
   }, [])
+
+  useEffect(() => {
+    if (latestBalance !== null && formData.amount) {
+      const amount = formData.amount
+      if (!isNaN(amount)) {
+        const newBalance = formData.transaction_type === 'credit'
+          ? latestBalance + amount
+          : latestBalance - amount
+        
+        setFormData(prev => ({
+          ...prev,
+          balance: parseFloat(newBalance.toFixed(2))
+        }))
+      }
+    }
+  }, [formData.amount, formData.transaction_type, latestBalance])
 
   const loadCategories = async () => {
     try {
@@ -42,36 +60,30 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
     }
   }
 
+  const loadLatestBalance = async () => {
+    try {
+      const response = await transactionApi.list({ page: 1, page_size: 1 })
+      if (response.transactions.length > 0) {
+        setLatestBalance(response.transactions[0].balance || 0)
+      } else {
+        setLatestBalance(0)
+      }
+    } catch (err) {
+      console.error('Failed to load latest balance:', err)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setError(null)
 
     try {
-      await transactionApi.update(transaction.id, formData)
+      await transactionApi.create(formData)
       onSaved()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update transaction')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this transaction?')) {
-      return
-    }
-
-    setSaving(true)
-    setError(null)
-
-    try {
-      await transactionApi.delete(transaction.id)
-      onSaved()
-      onClose()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete transaction')
+      setError(err instanceof Error ? err.message : 'Failed to create transaction')
     } finally {
       setSaving(false)
     }
@@ -82,7 +94,7 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
       <div className="bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border">
         {/* Header */}
         <div className="px-6 py-4 border-b border-border">
-          <h2 className="text-xl font-semibold text-foreground">Edit Transaction</h2>
+          <h2 className="text-xl font-semibold text-foreground">Add Transaction</h2>
         </div>
 
         {/* Form */}
@@ -95,57 +107,65 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
 
           {/* Date */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label htmlFor="tx-date" className="block text-sm font-medium text-foreground mb-1">
               Date
             </label>
             <input
               type="date"
-              value={formData.date.toISOString().split('T')[0]}
-              onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value) })}
+              id="tx-date"
+              value={new Date(formData.date).toISOString().split('T')[0]}
+              onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toISOString() })}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
               required
+              placeholder="Transaction date"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label htmlFor="tx-description" className="block text-sm font-medium text-foreground mb-1">
               Description
             </label>
             <input
               type="text"
+              id="tx-description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
               required
+              placeholder="e.g., Grocery store"
             />
           </div>
 
           {/* Amount */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label htmlFor="tx-amount" className="block text-sm font-medium text-foreground mb-1">
               Amount
             </label>
             <input
               type="number"
               step="0.01"
+              id="tx-amount"
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
               required
+              placeholder="0.00"
             />
           </div>
 
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label htmlFor="tx-type" className="block text-sm font-medium text-foreground mb-1">
               Type
             </label>
             <select
+              id="tx-type"
               value={formData.transaction_type}
               onChange={(e) => setFormData({ ...formData, transaction_type: e.target.value as 'debit' | 'credit' })}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
               required
+              title="Transaction type"
             >
               <option value="debit">Debit</option>
               <option value="credit">Credit</option>
@@ -154,13 +174,15 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label htmlFor="tx-category" className="block text-sm font-medium text-foreground mb-1">
               Category
             </label>
             <select
+              id="tx-category"
               value={formData.category_id || ''}
               onChange={(e) => setFormData({ ...formData, category_id: e.target.value || undefined })}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              title="Select category"
             >
               <option value="">Select Category</option>
               {categories.map((cat) => (
@@ -171,6 +193,22 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
             </select>
           </div>
 
+          {/* Balance (optional) */}
+          <div>
+            <label htmlFor="tx-balance" className="block text-sm font-medium text-foreground mb-1">
+              Balance (optional)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              id="tx-balance"
+              value={formData.balance ?? ''}
+              onChange={(e) => setFormData({ ...formData, balance: e.target.value ? parseFloat(e.target.value) : undefined })}
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              placeholder="After this transaction"
+            />
+          </div>
+
           {/* Actions */}
           <div className="flex gap-3 pt-4">
             <button
@@ -178,7 +216,7 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
               disabled={saving}
               className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? 'Saving...' : 'Add Transaction'}
             </button>
             <button
               type="button"
@@ -187,15 +225,6 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
               className="px-4 py-2 border border-border text-foreground rounded-md hover:bg-accent disabled:opacity-50"
             >
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={saving}
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 disabled:opacity-50"
-              title="Delete transaction"
-            >
-              🗑️
             </button>
           </div>
         </form>

@@ -4,8 +4,13 @@
  * User profile menu with account information and navigation.
  */
 
+'use client'
+
 import { LogOut, Settings, FileText, User } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { getCurrentUserProfile, type UserProfile } from "@/lib/api/auth"
+import { logoutUser } from "@/lib/auth"
 
 interface MenuItem {
   label: string
@@ -14,6 +19,24 @@ interface MenuItem {
 }
 
 export default function Profile() {
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const profile = await getCurrentUserProfile()
+        setUser(profile)
+      } catch (error) {
+        console.error('Failed to load user profile:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadUser()
+  }, [])
+
   const menuItems: MenuItem[] = [
     {
       label: "Profile",
@@ -32,6 +55,26 @@ export default function Profile() {
     },
   ]
 
+  const handleLogout = async () => {
+    await logoutUser()
+  }
+
+  const getInitials = (name: string | null, email: string): string => {
+    if (name) {
+      return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2)
+    }
+    return email[0].toUpperCase()
+  }
+
+  const initials = user ? getInitials(user.full_name, user.email) : 'U'
+  const displayName = user?.full_name || 'User'
+  const displayEmail = user?.email || 'Not logged in'
+
   return (
     <div className="w-full max-w-sm mx-auto">
       <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
@@ -40,17 +83,17 @@ export default function Profile() {
           <div className="flex items-center gap-4 mb-6">
             <div className="relative shrink-0">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-semibold ring-4 ring-white dark:ring-zinc-900">
-                U
+                {loading ? '...' : initials}
               </div>
               <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
             </div>
 
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                User
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                {loading ? 'Loading...' : displayName}
               </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Not logged in
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 truncate">
+                {loading ? '...' : displayEmail}
               </p>
             </div>
           </div>
@@ -74,6 +117,7 @@ export default function Profile() {
 
             <button
               type="button"
+              onClick={handleLogout}
               className="w-full flex items-center gap-2 p-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400"
             >
               <LogOut className="w-4 h-4" />

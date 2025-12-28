@@ -6,11 +6,13 @@
 
 "use client"
 
+import { useEffect, useState } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Bell, ChevronRight } from "lucide-react"
 import Profile from "@/components/layout/profile"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { getCurrentUserProfile, type UserProfile } from "@/lib/api/auth"
 
 interface BreadcrumbItem {
   label: string
@@ -22,6 +24,35 @@ interface TopNavProps {
 }
 
 export default function TopNav({ breadcrumbs = [] }: TopNavProps) {
+  const [user, setUser] = useState<UserProfile | null>(null)
+  
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const profile = await getCurrentUserProfile()
+        setUser(profile)
+      } catch (error) {
+        console.error('Failed to load user profile:', error)
+      }
+    }
+    
+    loadUser()
+  }, [])
+
+  const getInitials = (name: string | null, email: string): string => {
+    if (name) {
+      return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2)
+    }
+    return email[0].toUpperCase()
+  }
+
+  const initials = user ? getInitials(user.full_name, user.email) : 'U'
+
   const defaultBreadcrumbs: BreadcrumbItem[] = breadcrumbs.length > 0 
     ? breadcrumbs 
     : [{ label: "Dashboard" }]
@@ -60,7 +91,7 @@ export default function TopNav({ breadcrumbs = [] }: TopNavProps) {
         <DropdownMenu>
           <DropdownMenuTrigger className="focus:outline-none">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium ring-2 ring-gray-200 dark:ring-[#2B2B30] cursor-pointer">
-              U
+              {initials}
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -75,3 +106,4 @@ export default function TopNav({ breadcrumbs = [] }: TopNavProps) {
     </nav>
   )
 }
+

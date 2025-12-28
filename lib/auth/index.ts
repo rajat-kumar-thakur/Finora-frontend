@@ -1,34 +1,104 @@
 /**
  * Auth Context & Utilities
  * 
- * Placeholder for authentication logic.
- * To be implemented in auth phase.
+ * Client-side authentication state management and utilities.
  */
+
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { 
+  getAccessToken, 
+  clearTokens, 
+  getCurrentUserProfile,
+  type UserProfile 
+} from '@/lib/api/auth'
 
 /**
  * Check if user is authenticated
- * Placeholder - always returns false until auth is implemented
  */
 export function isAuthenticated(): boolean {
-  // TODO: Implement actual auth check
-  // This will check for valid token/session
-  return false
+  return getAccessToken() !== null
 }
 
 /**
- * Get current user data
- * Placeholder - returns null until auth is implemented
+ * Get current user data from API
+ * Returns null if not authenticated or on error
  */
-export function getCurrentUser(): null {
-  // TODO: Implement user data retrieval
-  return null
+export async function getCurrentUser(): Promise<UserProfile | null> {
+  try {
+    if (!isAuthenticated()) {
+      return null
+    }
+    
+    return await getCurrentUserProfile()
+  } catch (error) {
+    console.error('Failed to get current user:', error)
+    return null
+  }
 }
 
 /**
  * Auth guard for protected routes
- * Placeholder - to be used with middleware
+ * Redirects to login if not authenticated
  */
 export function requireAuth(): void {
-  // TODO: Implement redirect logic for unauthenticated users
-  // This will be used in middleware or route handlers
+  if (typeof window !== 'undefined' && !isAuthenticated()) {
+    window.location.href = '/login'
+  }
+}
+
+/**
+ * Logout user and redirect to login
+ */
+export async function logoutUser(): Promise<void> {
+  clearTokens()
+  
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login'
+  }
+}
+
+/**
+ * Hook to get current user profile
+ */
+export function useUser() {
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const userData = await getCurrentUser()
+        setUser(userData)
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to load user'))
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadUser()
+  }, [])
+  
+  return { user, loading, error }
+}
+
+/**
+ * Hook for protected routes
+ * Redirects to login if not authenticated
+ */
+export function useRequireAuth() {
+  const router = useRouter()
+  const authenticated = isAuthenticated()
+  
+  useEffect(() => {
+    if (!authenticated) {
+      router.push('/login')
+    }
+  }, [authenticated, router])
+  
+  return authenticated
 }

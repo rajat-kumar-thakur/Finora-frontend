@@ -26,6 +26,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
   const [saving, setSaving] = useState(false)
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
+  const [filterDebouncing, setFilterDebouncing] = useState(false)
   const [newTransaction, setNewTransaction] = useState({
     date: new Date().toISOString().split('T')[0],
     description: '',
@@ -53,9 +54,24 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     balance_max: ''
   })
 
+  // Debounced effect for column filters (wait 500ms after user stops typing)
+  useEffect(() => {
+    setFilterDebouncing(true)
+    const debounceTimer = setTimeout(() => {
+      loadTransactions()
+      setFilterDebouncing(false)
+    }, 500) // 500ms delay
+
+    return () => {
+      clearTimeout(debounceTimer)
+      setFilterDebouncing(false)
+    }
+  }, [columnFilters])
+
+  // Immediate effect for other filters (without debounce)
   useEffect(() => {
     loadTransactions()
-  }, [filters, refreshTrigger, columnFilters])
+  }, [filters, refreshTrigger])
 
   useEffect(() => {
     loadCategories()
@@ -364,13 +380,20 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                 />
               </th>
               <th className="p-2">
-                <input
-                  type="text"
-                  value={columnFilters.description}
-                  onChange={(e) => setColumnFilters({ ...columnFilters, description: e.target.value })}
-                  className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
-                  placeholder="Search..."
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={columnFilters.description}
+                    onChange={(e) => setColumnFilters({ ...columnFilters, description: e.target.value })}
+                    className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground pr-6"
+                    placeholder="Search..."
+                  />
+                  {filterDebouncing && columnFilters.description && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      <div className="animate-spin h-3 w-3 border-2 border-primary border-t-transparent rounded-full" />
+                    </div>
+                  )}
+                </div>
               </th>
               <th className="p-2">
                 <select

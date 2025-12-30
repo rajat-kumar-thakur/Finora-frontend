@@ -45,9 +45,15 @@ export interface TransactionUpdate {
 export interface TransactionFilter {
   start_date?: string
   end_date?: string
+  date?: string  // Exact date match
   transaction_type?: 'debit' | 'credit'
   category_id?: string
   source?: 'pdf' | 'manual'
+  description?: string  // Text search in description
+  amount_min?: number
+  amount_max?: number
+  balance_min?: number
+  balance_max?: number
   page?: number
   page_size?: number
 }

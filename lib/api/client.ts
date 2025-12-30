@@ -69,42 +69,76 @@ class ApiClient {
   }
 
   /**
-   * Make HTTP request
+   * Make HTTP request with automatic token refresh
    */
   private async request<T>(
     endpoint: string,
-    config: RequestConfig = {}
+    config: RequestConfig = {},
+    isRetry: boolean = false
   ): Promise<T> {
     const { params, headers: customHeaders, ...fetchConfig } = config
-    
+
     const url = this.buildUrl(endpoint, params)
     const headers = this.getHeaders(customHeaders)
-    
+
     try {
       const response = await fetch(url, {
         ...fetchConfig,
         headers,
       })
-      
-      // Handle non-2xx responses
+
+      // Handle 401 Unauthorized - try to refresh token
+      if (response.status === 401 && !isRetry && !endpoint.includes('/auth/')) {
+        // Try to refresh the token
+        const refreshed = await this.tryRefreshToken()
+
+        if (refreshed) {
+          // Retry the request with new token
+          return this.request<T>(endpoint, config, true)
+        }
+
+        // Refresh failed, redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login'
+        }
+        throw new ApiError(401, 'Unauthorized', { detail: 'Session expired' })
+      }
+
+      // Handle other non-2xx responses
       if (!response.ok) {
         const errorData = await response.json().catch(() => null)
         throw new ApiError(response.status, response.statusText, errorData)
       }
-      
+
       // Handle 204 No Content
       if (response.status === 204) {
         return null as T
       }
-      
+
       return await response.json()
     } catch (error) {
       if (error instanceof ApiError) {
         throw error
       }
-      
+
       // Network errors or other fetch failures
       throw new Error(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Try to refresh the access token
+   * Returns true if successful, false otherwise
+   */
+  private async tryRefreshToken(): Promise<boolean> {
+    try {
+      // Import dynamically to avoid circular dependency
+      const { refreshAccessToken } = await import('./auth')
+      await refreshAccessToken()
+      return true
+    } catch (error) {
+      console.error('Token refresh failed:', error)
+      return false
     }
   }
 

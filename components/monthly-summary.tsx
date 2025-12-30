@@ -9,17 +9,21 @@
 import { useState, useEffect } from 'react'
 import { summaryApi, type MonthlySummary } from '@/lib/api'
 
-export function MonthlySummaryCard() {
+interface MonthlySummaryCardProps {
+  refreshTrigger?: number
+}
+
+export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps = {}) {
   const [summary, setSummary] = useState<MonthlySummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
 
   useEffect(() => {
     loadSummary()
-  }, [selectedYear, selectedMonth])
+  }, [selectedYear, selectedMonth, refreshTrigger])
 
   const loadSummary = async () => {
     setLoading(true)

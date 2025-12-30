@@ -9,14 +9,18 @@
 import { useState, useEffect } from 'react'
 import { summaryApi, type NetWorth } from '@/lib/api'
 
-export function NetWorthCard() {
+interface NetWorthCardProps {
+  refreshTrigger?: number
+}
+
+export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
   const [netWorth, setNetWorth] = useState<NetWorth | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadNetWorth()
-  }, [])
+  }, [refreshTrigger])
 
   const loadNetWorth = async () => {
     setLoading(true)

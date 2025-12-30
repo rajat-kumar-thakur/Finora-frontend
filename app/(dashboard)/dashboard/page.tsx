@@ -6,7 +6,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NetWorthCard } from '@/components/net-worth-card'
 import { MonthlySummaryCard } from '@/components/monthly-summary'
 import { TransactionList } from '@/components/transaction-list'
@@ -19,6 +19,15 @@ export default function DashboardPage() {
     // Increment trigger to refresh all components
     setRefreshTrigger(prev => prev + 1)
   }
+
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRefreshTrigger(prev => prev + 1)
+    }, 60000) // 60 seconds
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,10 +51,10 @@ export default function DashboardPage() {
           {/* Left Column - Accounts & Summary */}
           <div className="lg:col-span-2 space-y-4">
             {/* Net Worth / Accounts */}
-            <NetWorthCard key={`networth-${refreshTrigger}`} />
-            
+            <NetWorthCard refreshTrigger={refreshTrigger} />
+
             {/* Monthly Summary */}
-            <MonthlySummaryCard key={`summary-${refreshTrigger}`} />
+            <MonthlySummaryCard refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Right Column - Recent Transactions */}

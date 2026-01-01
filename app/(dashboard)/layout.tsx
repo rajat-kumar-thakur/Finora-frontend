@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { getAccessToken, clearTokens } from '@/lib/api/auth'
+import { NotificationCenter } from '@/components/notification-center'
 
 // Helper function to decode JWT token
 function parseJwt(token: string) {
@@ -153,6 +154,12 @@ export default function Layout({
 
           {/* Settings Menu */}
           <div className="space-y-1">
+            {/* Notifications */}
+            <div className="flex items-center gap-3 px-3 py-2">
+              <NotificationCenter />
+              <span className="text-sm font-medium text-muted-foreground">Notifications</span>
+            </div>
+
             <Link
               href="/settings"
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-all duration-200 w-full"

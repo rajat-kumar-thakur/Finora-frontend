@@ -128,7 +128,7 @@ export default function Sidebar() {
                   <NavItem href="/insights" icon={BarChart3}>
                     Insights
                   </NavItem>
-                  <NavItem href="/budgets" icon={Target} disabled>
+                  <NavItem href="/budgets" icon={Target}>
                     Budgets
                   </NavItem>
                   <NavItem href="/goals" icon={TrendingUp} disabled>

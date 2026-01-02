@@ -11,6 +11,8 @@ export function cn(...inputs: ClassValue[]) {
 export function formatCurrency(amount: number | undefined | null): string {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'INR'
+    currency: 'INR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(amount || 0)
 }

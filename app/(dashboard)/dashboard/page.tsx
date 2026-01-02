@@ -50,7 +50,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pb-4">
           {/* Left Column - Accounts & Summary */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Net Worth / Accounts */}
+            {/* Total Balance / Accounts */}
             <NetWorthCard refreshTrigger={refreshTrigger} />
 
             {/* Monthly Summary */}
@@ -70,7 +70,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <TransactionList
-                filters={{ page: 1, page_size: 10 }}
+                filters={{ page: 1, page_size: 8 }}
                 onUpdate={handleUpdate}
                 compact={true}
               />

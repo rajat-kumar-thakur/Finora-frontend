@@ -9,11 +9,9 @@
 
 import {
   LayoutDashboard,
-  Wallet,
   ArrowLeftRight,
   TrendingUp,
   Target,
-  CreditCard,
   Settings,
   HelpCircle,
   Menu,
@@ -142,7 +140,7 @@ export default function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <div className="flex-1 overflow-y-auto py-4 px-4">
+          <div className="flex-1 py-4 px-4">
             <div className="space-y-6">
               {/* Main Navigation */}
               <div>
@@ -167,6 +165,20 @@ export default function Sidebar() {
                 </div>
               </div>
 
+              {/* Investments & Assets */}
+              <div>
+                {!isCollapsed && (
+                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Investments
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <NavItem href="/investments" icon={TrendingUp}>
+                    Portfolio
+                  </NavItem>
+                </div>
+              </div>
+
               {/* Financial Planning */}
               <div>
                 {!isCollapsed && (
@@ -186,26 +198,6 @@ export default function Sidebar() {
                   </NavItem>
                   <NavItem href="/recurring-payments" icon={Repeat}>
                     Recurring Bills
-                  </NavItem>
-                  <NavItem href="/goals" icon={TrendingUp} disabled>
-                    Goals
-                  </NavItem>
-                </div>
-              </div>
-
-              {/* Coming Soon */}
-              <div>
-                {!isCollapsed && (
-                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                    Coming Soon
-                  </div>
-                )}
-                <div className="space-y-1">
-                  <NavItem href="/accounts" icon={Wallet} disabled>
-                    Accounts
-                  </NavItem>
-                  <NavItem href="/cards" icon={CreditCard} disabled>
-                    Cards
                   </NavItem>
                 </div>
               </div>

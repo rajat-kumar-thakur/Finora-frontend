@@ -26,7 +26,7 @@ export default function UploadPage() {
     <div className="space-y-4 p-4 lg:p-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl lg:text-2xl font-bold text-foreground">
+        <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
           Upload Transactions
         </h1>
         <p className="text-xs text-muted-foreground mt-0.5">

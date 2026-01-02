@@ -6,7 +6,7 @@
  * Shows spending by category.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { summaryApi, type CategoryBreakdownItem } from '@/lib/api'
 
 export function CategoryBreakdown() {
@@ -15,11 +15,7 @@ export function CategoryBreakdown() {
   const [error, setError] = useState<string | null>(null)
   const [transactionType, setTransactionType] = useState<'debit' | 'credit'>('debit')
 
-  useEffect(() => {
-    loadBreakdown()
-  }, [transactionType])
-
-  const loadBreakdown = async () => {
+  const loadBreakdown = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -33,7 +29,11 @@ export function CategoryBreakdown() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [transactionType])
+
+  useEffect(() => {
+    loadBreakdown()
+  }, [loadBreakdown])
 
   const total = breakdown.reduce((sum, item) => sum + item.total, 0)
 

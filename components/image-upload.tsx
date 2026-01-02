@@ -100,6 +100,7 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
           {/* Preview */}
           {preview && (
             <div className="relative inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preview}
                 alt="Preview"

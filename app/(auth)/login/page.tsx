@@ -8,6 +8,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { login, type LoginData } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
@@ -65,22 +66,22 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12] px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12] px-4 overflow-hidden">
+      <div className="max-w-md w-full space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <img src="/icon.png" alt="Finora" className="w-10 h-10 rounded-lg" />
+            <Image src="/icon.png" alt="Finora" width={32} height={32} className="w-8 h-8 rounded-lg" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Finora
           </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
             Smart Modern Finance Tracker
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#0F0F12] border border-gray-200 dark:border-[#1F1F23] rounded-xl p-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+        <div className="bg-white dark:bg-[#0F0F12] border border-gray-200 dark:border-[#1F1F23] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Sign In
           </h2>
 
@@ -152,10 +153,6 @@ function LoginForm() {
             </p>
           </form>
         </div>
-
-        <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-          Phase 1 - Authentication Enabled
-        </p>
       </div>
     </div>
   )
@@ -163,7 +160,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12]">
+      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12] overflow-hidden">
         <div className="text-gray-600 dark:text-gray-400">Loading...</div>
       </div>
     }>

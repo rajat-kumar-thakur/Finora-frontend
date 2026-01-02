@@ -215,7 +215,7 @@ export default function Sidebar() {
           {/* Settings Footer */}
           <div className="px-4 py-4 border-t border-gray-200 dark:border-[#1F1F23]">
             <div className="space-y-1">
-              <NavItem href="/settings" icon={Settings} disabled>
+              <NavItem href="/settings" icon={Settings}>
                 Settings
               </NavItem>
               <NavItem href="/help" icon={HelpCircle} disabled>

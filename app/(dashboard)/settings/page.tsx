@@ -210,6 +210,26 @@ export default function SettingsPage() {
     }
   }
 
+  const handleUpdateDeduplication = async (updates: Partial<AlertPreferences['deduplication']>) => {
+    if (!alertPrefs) return
+    setSavingNotifications(true)
+    setError(null)
+    try {
+      const updated = await alertApi.updatePreferences({
+        deduplication: {
+          ...alertPrefs.deduplication,
+          ...updates,
+        },
+      })
+      setAlertPrefs(updated)
+      showSuccess('Alert frequency saved')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update alert frequency')
+    } finally {
+      setSavingNotifications(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-4 p-4 lg:p-6">
@@ -645,6 +665,87 @@ export default function SettingsPage() {
                   >
                     Save
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Alert Frequency */}
+          <div className="bg-card border border-border rounded-lg p-4 lg:p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Alert Frequency</h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              Control how often you receive repeated alerts. Set to 0 hours to receive an alert every time the threshold is crossed.
+            </p>
+            <div className="space-y-4 max-w-md">
+              <div>
+                <label htmlFor="budget-alert-hours" className="block font-medium text-foreground text-sm mb-1">
+                  Budget Alert Cooldown
+                </label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Wait this long before re-alerting for the same budget
+                </p>
+                <div className="flex gap-2 items-center">
+                  <select
+                    id="budget-alert-hours"
+                    value={alertPrefs.deduplication.budget_alert_hours}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value)
+                      setAlertPrefs({
+                        ...alertPrefs,
+                        deduplication: {
+                          ...alertPrefs.deduplication,
+                          budget_alert_hours: value,
+                        },
+                      })
+                      handleUpdateDeduplication({ budget_alert_hours: value })
+                    }}
+                    disabled={savingNotifications}
+                    className="px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  >
+                    <option value={0}>Every time (no cooldown)</option>
+                    <option value={1}>1 hour</option>
+                    <option value={6}>6 hours</option>
+                    <option value={12}>12 hours</option>
+                    <option value={24}>24 hours (default)</option>
+                    <option value={48}>48 hours</option>
+                    <option value={168}>1 week</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="low-balance-alert-hours" className="block font-medium text-foreground text-sm mb-1">
+                  Low Balance Alert Cooldown
+                </label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Wait this long before re-alerting for low balance
+                </p>
+                <div className="flex gap-2 items-center">
+                  <select
+                    id="low-balance-alert-hours"
+                    value={alertPrefs.deduplication.low_balance_alert_hours}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value)
+                      setAlertPrefs({
+                        ...alertPrefs,
+                        deduplication: {
+                          ...alertPrefs.deduplication,
+                          low_balance_alert_hours: value,
+                        },
+                      })
+                      handleUpdateDeduplication({ low_balance_alert_hours: value })
+                    }}
+                    disabled={savingNotifications}
+                    className="px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  >
+                    <option value={0}>Every time (no cooldown)</option>
+                    <option value={1}>1 hour</option>
+                    <option value={6}>6 hours</option>
+                    <option value={12}>12 hours (default)</option>
+                    <option value={24}>24 hours</option>
+                    <option value={48}>48 hours</option>
+                    <option value={168}>1 week</option>
+                  </select>
                 </div>
               </div>
             </div>

@@ -20,16 +20,23 @@ export interface EmailPreferences {
   weekly_summary: boolean
 }
 
+export interface DeduplicationSettings {
+  budget_alert_hours: number
+  low_balance_alert_hours: number
+}
+
 export interface AlertPreferences {
   user_id: string
   thresholds: AlertThresholds
   email_preferences: EmailPreferences
+  deduplication: DeduplicationSettings
   updated_at: string
 }
 
 export interface AlertPreferencesUpdate {
   thresholds?: Partial<AlertThresholds>
   email_preferences?: Partial<EmailPreferences>
+  deduplication?: Partial<DeduplicationSettings>
 }
 
 export const alertApi = {

@@ -87,6 +87,8 @@ class ApiClient {
         headers,
       })
 
+      console.log(`[API] ${fetchConfig.method || 'GET'} ${url} - Status:`, response.status)
+
       // Handle 401 Unauthorized - try to refresh token
       if (response.status === 401 && !isRetry && !endpoint.includes('/auth/')) {
         // Try to refresh the token
@@ -107,6 +109,12 @@ class ApiClient {
       // Handle other non-2xx responses
       if (!response.ok) {
         const errorData = await response.json().catch(() => null)
+        console.error('[API] Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          url,
+          data: errorData
+        })
         throw new ApiError(response.status, response.statusText, errorData)
       }
 
@@ -153,6 +161,7 @@ class ApiClient {
    * POST request
    */
   async post<T>(endpoint: string, data?: unknown, config?: RequestConfig): Promise<T> {
+    console.log('[API] POST', endpoint, data)
     return this.request<T>(endpoint, {
       ...config,
       method: 'POST',

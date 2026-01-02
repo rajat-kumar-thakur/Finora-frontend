@@ -8,6 +8,9 @@
 
 import { useState, useEffect } from 'react'
 import { summaryApi, type NetWorth } from '@/lib/api'
+import { investmentApi, type PortfolioSummary } from '@/lib/api/investments'
+import { formatCurrency } from '@/lib/utils'
+import Link from 'next/link'
 
 interface NetWorthCardProps {
   refreshTrigger?: number
@@ -15,11 +18,13 @@ interface NetWorthCardProps {
 
 export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
   const [netWorth, setNetWorth] = useState<NetWorth | null>(null)
+  const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadNetWorth()
+    loadPortfolio()
   }, [refreshTrigger])
 
   const loadNetWorth = async () => {
@@ -30,9 +35,18 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
       const data = await summaryApi.netWorth()
       setNetWorth(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load net worth')
+      setError(err instanceof Error ? err.message : 'Failed to load balance')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadPortfolio = async () => {
+    try {
+      const data = await investmentApi.getSummary()
+      setPortfolio(data)
+    } catch (err) {
+      console.error('Failed to load portfolio:', err)
     }
   }
 
@@ -67,7 +81,10 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
       <div className="mb-4">
         <div className="text-xs text-muted-foreground mb-1">Total Balance</div>
         <div className="text-2xl lg:text-3xl font-bold text-foreground">
-          ₹{netWorth?.bank_balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          {formatCurrency((netWorth?.bank_balance || 0) + (portfolio?.total_value || 0))}
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">
+          Bank: {formatCurrency(netWorth?.bank_balance || 0)} + Investments: {formatCurrency(portfolio?.total_value || 0)}
         </div>
       </div>
 
@@ -89,25 +106,44 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
             </div>
           </div>
           <div className="text-sm font-semibold text-foreground">
-            ₹{netWorth?.bank_balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            {formatCurrency(netWorth?.bank_balance || 0)}
           </div>
         </div>
 
         {/* Investments - Coming Soon */}
-        <div className="flex items-center justify-between p-3 bg-accent/30 border border-dashed border-border rounded-lg opacity-60">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
+        <Link href="/investments" className="block">
+          <div className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+            portfolio && portfolio.total_value > 0
+              ? 'bg-accent/50 border-border hover:bg-accent'
+              : 'bg-accent/30 border-dashed border-border opacity-60'
+          }`}>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-foreground">Investment Portfolio</div>
+                <div className="text-xs text-muted-foreground">
+                  {portfolio && portfolio.total_value > 0 ? (
+                    <span className={portfolio.total_return >= 0 ? 'text-green-500' : 'text-red-500'}>
+                      {portfolio.total_return >= 0 ? '+' : ''}{portfolio.return_percentage.toFixed(2)}% return
+                    </span>
+                  ) : (
+                    'No investments yet'
+                  )}
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-sm font-medium text-foreground">Investment Portfolio</div>
-              <div className="text-xs text-muted-foreground">Coming soon</div>
+            <div className="text-sm font-semibold text-foreground">
+              {portfolio && portfolio.total_value > 0 
+                ? formatCurrency(portfolio.total_value)
+                : '—'
+              }
             </div>
           </div>
-          <div className="text-xs text-muted-foreground">—</div>
-        </div>
+        </Link>
       </div>
 
       {/* Footer Note */}

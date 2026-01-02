@@ -75,17 +75,24 @@ export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateMo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[TransactionCreate] Form submitted')
+    console.log('[TransactionCreate] Form data:', formData)
+    
     setSaving(true)
     setError(null)
 
     try {
-      await transactionApi.create(formData)
+      console.log('[TransactionCreate] Calling API...')
+      const result = await transactionApi.create(formData)
+      console.log('[TransactionCreate] API success:', result)
       onSaved()
       onClose()
     } catch (err) {
+      console.error('[TransactionCreate] API error:', err)
       setError(err instanceof Error ? err.message : 'Failed to create transaction')
     } finally {
       setSaving(false)
+      console.log('[TransactionCreate] Form submission complete')
     }
   }
 

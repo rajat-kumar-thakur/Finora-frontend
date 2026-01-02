@@ -10,7 +10,6 @@ import { useState, useEffect, useRef } from 'react'
 import { notificationApi, type Notification, type NotificationType } from '@/lib/api/notifications'
 import {
   Bell,
-  X,
   Check,
   CheckCheck,
   AlertTriangle,

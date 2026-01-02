@@ -8,6 +8,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { login, type LoginData } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
@@ -69,7 +70,7 @@ function LoginForm() {
       <div className="max-w-md w-full space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <img src="/icon.png" alt="Finora" className="w-8 h-8 rounded-lg" />
+            <Image src="/icon.png" alt="Finora" width={32} height={32} className="w-8 h-8 rounded-lg" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Finora

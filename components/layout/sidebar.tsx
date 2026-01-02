@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -111,7 +112,7 @@ export default function Sidebar() {
           {/* Logo/Brand */}
           <div className="h-16 border-b border-gray-200 dark:border-[#1F1F23] flex items-center justify-center relative px-3">
             <Link href="/dashboard" className={cn("flex items-center hover:opacity-80 transition-opacity", isCollapsed ? "flex-col gap-0.5" : "gap-3 mr-auto")}>
-              <img src="/icon.png" alt="Finora" className="w-8 h-8 rounded-lg" />
+              <Image src="/icon.png" alt="Finora" width={32} height={32} className="w-8 h-8 rounded-lg" />
               <span className={cn("font-semibold text-gray-900 dark:text-white", isCollapsed ? "text-[9px] leading-none" : "text-lg")}>
                 Finora
               </span>

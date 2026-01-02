@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Plus, Trash2, Check, Calendar, DollarSign, AlertCircle, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -78,27 +78,23 @@ export default function RecurringPaymentsManagement() {
     notes: ""
   })
 
-  useEffect(() => {
-    fetchData()
-  }, [filter])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       const [paymentsData, summaryData, categoriesData] = await Promise.all([
         filter === "upcoming" 
-          ? apiClient.get("/api/v1/recurring-payments/upcoming?days=7")
+          ? apiClient.get<RecurringPayment[]>("/api/v1/recurring-payments/upcoming?days=7")
           : filter === "overdue"
-          ? apiClient.get("/api/v1/recurring-payments/overdue")
-          : apiClient.get("/api/v1/recurring-payments"),
-        apiClient.get("/api/v1/recurring-payments/summary"),
-        apiClient.get("/api/v1/categories")
+          ? apiClient.get<RecurringPayment[]>("/api/v1/recurring-payments/overdue")
+          : apiClient.get<RecurringPayment[]>("/api/v1/recurring-payments"),
+        apiClient.get<RecurringPaymentSummary>("/api/v1/recurring-payments/summary"),
+        apiClient.get<Category[]>("/api/v1/categories")
       ])
       
       setPayments(paymentsData || [])
       setSummary(summaryData || null)
       setCategories(categoriesData || [])
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to load recurring payments",
@@ -107,7 +103,11 @@ export default function RecurringPaymentsManagement() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter, toast])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -135,7 +135,7 @@ export default function RecurringPaymentsManagement() {
       setIsDialogOpen(false)
       resetForm()
       fetchData()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to save payment",
@@ -149,7 +149,7 @@ export default function RecurringPaymentsManagement() {
       await apiClient.post(`/api/v1/recurring-payments/${paymentId}/mark-paid`)
       toast({ title: "Payment marked as paid" })
       fetchData()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to mark payment as paid",
@@ -165,7 +165,7 @@ export default function RecurringPaymentsManagement() {
       await apiClient.delete(`/api/v1/recurring-payments/${paymentId}`)
       toast({ title: "Payment deleted" })
       fetchData()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to delete payment",
@@ -449,7 +449,7 @@ export default function RecurringPaymentsManagement() {
                       )}
                     </div>
                     <div className="mt-2">
-                      <Badge variant={getDaysUntilDueColor(payment.days_until_due) as any}>
+                      <Badge variant={getDaysUntilDueColor(payment.days_until_due) as "default" | "secondary" | "destructive" | "outline"}>
                         {payment.days_until_due !== undefined && payment.days_until_due < 0 && (
                           <AlertCircle className="h-3 w-3 mr-1" />
                         )}

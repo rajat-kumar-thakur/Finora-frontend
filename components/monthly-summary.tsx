@@ -6,7 +6,7 @@
  * Displays monthly income/expense summary.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { summaryApi, type MonthlySummary } from '@/lib/api'
 
 interface MonthlySummaryCardProps {
@@ -21,11 +21,7 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
 
-  useEffect(() => {
-    loadSummary()
-  }, [selectedYear, selectedMonth, refreshTrigger])
-
-  const loadSummary = async () => {
+  const loadSummary = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -37,7 +33,11 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedYear, selectedMonth])
+
+  useEffect(() => {
+    loadSummary()
+  }, [loadSummary, refreshTrigger])
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',

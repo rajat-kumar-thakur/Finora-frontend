@@ -58,7 +58,7 @@ export const budgetApi = {
    * List all budgets with spending info
    */
   list: async (activeOnly: boolean = false): Promise<Budget[]> => {
-    const params = activeOnly ? { active_only: 'true' } : {}
+    const params = activeOnly ? { active_only: 'true' } : undefined
     return apiClient.get<Budget[]>('/api/v1/budgets', { params })
   },
 

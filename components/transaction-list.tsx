@@ -6,7 +6,7 @@
  * Displays paginated list of transactions with inline editing.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { transactionApi, categoryApi, type Transaction, type TransactionFilter, type Category } from '@/lib/api'
 
 interface TransactionListProps {
@@ -54,6 +54,67 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     balance_max: ''
   })
 
+  // Modified loadTransactions to accept optional page override
+  const loadTransactions = useCallback(async (pageOverride?: number) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const currentPage = pageOverride || filters?.page || pagination.page || 1
+      
+      // Build filter object including column filters
+      const filterParams: Record<string, string | number | undefined> = {
+        ...filters,
+        page: currentPage,
+        page_size: filters?.page_size || 50,
+      }
+      
+      // Add column filters if they have values
+      if (columnFilters.description) {
+        filterParams.description = columnFilters.description
+      }
+      if (columnFilters.category_id) {
+        filterParams.category_id = columnFilters.category_id
+      }
+      if (columnFilters.transaction_type) {
+        filterParams.transaction_type = columnFilters.transaction_type
+      }
+      if (columnFilters.date) {
+        filterParams.date = columnFilters.date
+      }
+      if (columnFilters.amount_min) {
+        filterParams.amount_min = parseFloat(columnFilters.amount_min)
+      }
+      if (columnFilters.amount_max) {
+        filterParams.amount_max = parseFloat(columnFilters.amount_max)
+      }
+      if (columnFilters.balance_min) {
+        filterParams.balance_min = parseFloat(columnFilters.balance_min)
+      }
+      if (columnFilters.balance_max) {
+        filterParams.balance_max = parseFloat(columnFilters.balance_max)
+      }
+      
+      const result = await transactionApi.list(filterParams)
+      
+      setTransactions(result.transactions)
+      setPagination(result.pagination)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load transactions')
+    } finally {
+      setLoading(false)
+    }
+  }, [filters, pagination.page, columnFilters])
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const data = await categoryApi.list()
+      setCategories(data)
+    } catch (err) {
+      console.error('Failed to load categories:', err)
+    }
+  }, [])
+
   // Debounced effect for column filters (wait 500ms after user stops typing)
   useEffect(() => {
     setFilterDebouncing(true)
@@ -66,16 +127,16 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       clearTimeout(debounceTimer)
       setFilterDebouncing(false)
     }
-  }, [columnFilters])
+  }, [columnFilters, loadTransactions])
 
   // Immediate effect for other filters (without debounce)
   useEffect(() => {
     loadTransactions()
-  }, [filters, refreshTrigger])
+  }, [loadTransactions, refreshTrigger])
 
   useEffect(() => {
     loadCategories()
-  }, [refreshTrigger])
+  }, [loadCategories, refreshTrigger])
 
   // Auto-calculate balance when adding new transaction
   useEffect(() => {
@@ -99,14 +160,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     }
   }, [newTransaction.amount, newTransaction.transaction_type, isAdding, transactions, pagination.page])
 
-  const loadCategories = async () => {
-    try {
-      const data = await categoryApi.list()
-      setCategories(data)
-    } catch (err) {
-      console.error('Failed to load categories:', err)
-    }
-  }
+
 
   const startEdit = (tx: Transaction) => {
     setEditingId(tx.id)
@@ -220,57 +274,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     loadTransactions(newPage)
   }
 
-  // Modified loadTransactions to accept optional page override
-  const loadTransactions = async (pageOverride?: number) => {
-    setLoading(true)
-    setError(null)
 
-    try {
-      const currentPage = pageOverride || filters?.page || pagination.page || 1
-      
-      // Build filter object including column filters
-      const filterParams: Record<string, string | number | undefined> = {
-        ...filters,
-        page: currentPage,
-        page_size: filters?.page_size || 50,
-      }
-      
-      // Add column filters if they have values
-      if (columnFilters.description) {
-        filterParams.description = columnFilters.description
-      }
-      if (columnFilters.category_id) {
-        filterParams.category_id = columnFilters.category_id
-      }
-      if (columnFilters.transaction_type) {
-        filterParams.transaction_type = columnFilters.transaction_type
-      }
-      if (columnFilters.date) {
-        filterParams.date = columnFilters.date
-      }
-      if (columnFilters.amount_min) {
-        filterParams.amount_min = parseFloat(columnFilters.amount_min)
-      }
-      if (columnFilters.amount_max) {
-        filterParams.amount_max = parseFloat(columnFilters.amount_max)
-      }
-      if (columnFilters.balance_min) {
-        filterParams.balance_min = parseFloat(columnFilters.balance_min)
-      }
-      if (columnFilters.balance_max) {
-        filterParams.balance_max = parseFloat(columnFilters.balance_max)
-      }
-      
-      const result = await transactionApi.list(filterParams)
-      
-      setTransactions(result.transactions)
-      setPagination(result.pagination)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load transactions')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   if (loading) {
     return (

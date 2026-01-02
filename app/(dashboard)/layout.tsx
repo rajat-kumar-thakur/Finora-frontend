@@ -8,27 +8,10 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { getAccessToken, clearTokens } from '@/lib/api/auth'
+import { getAccessToken } from '@/lib/api/auth'
 import { NotificationCenter } from '@/components/notification-center'
 import { ThemeToggle } from '@/components/theme-toggle'
 import Sidebar from '@/components/layout/sidebar'
-
-// Helper function to decode JWT token
-function parseJwt(token: string) {
-  try {
-    const base64Url = token.split('.')[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    )
-    return JSON.parse(jsonPayload)
-  } catch {
-    return null
-  }
-}
 
 export default function Layout({
   children,
@@ -38,24 +21,11 @@ export default function Layout({
   const router = useRouter()
   const pathname = usePathname()
   const [isReady, setIsReady] = useState(false)
-  const [userEmail, setUserEmail] = useState('user@finora.com')
-  const [userName, setUserName] = useState('User')
   
   const token = typeof window !== 'undefined' ? getAccessToken() : null
   const isAuthenticated = token && token.trim() !== ''
   
   useEffect(() => {
-    // Extract user info from token
-    if (token) {
-      const decoded = parseJwt(token)
-      if (decoded) {
-        setUserEmail(decoded.email || 'user@finora.com')
-        // Extract name from email (part before @) or use full_name if available
-        const emailName = decoded.email?.split('@')[0] || 'User'
-        setUserName(decoded.full_name || emailName)
-      }
-    }
-    
     // Initialize theme from localStorage
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme')
@@ -87,11 +57,6 @@ export default function Layout({
     )
   }
   
-  const handleLogout = () => {
-    clearTokens()
-    router.push('/login')
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />

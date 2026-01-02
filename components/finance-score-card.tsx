@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { TrendingUp, TrendingDown, Minus, RefreshCw, Award, Target } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -87,22 +87,18 @@ export default function FinanceScoreCard() {
   const [calculating, setCalculating] = useState(false)
   const { toast } = useToast()
 
-  useEffect(() => {
-    fetchScoreData()
-  }, [])
-
-  const fetchScoreData = async () => {
+  const fetchScoreData = useCallback(async () => {
     try {
       setLoading(true)
       const [currentData, historyData] = await Promise.all([
-        apiClient.get("/api/v1/finance-score/current"),
-        apiClient.get("/api/v1/finance-score/history?limit=12")
+        apiClient.get<FinanceScore>("/api/v1/finance-score/current"),
+        apiClient.get<{ scores: HistoryEntry[] }>("/api/v1/finance-score/history?limit=12")
       ])
       
       setScore(currentData || null)
       setHistory(historyData?.scores || [])
-    } catch (error: any) {
-      if (error.response?.status !== 404) {
+    } catch (error) {
+      if ((error as { response?: { status?: number } })?.response?.status !== 404) {
         toast({
           title: "Error",
           description: "Failed to load finance score",
@@ -112,7 +108,11 @@ export default function FinanceScoreCard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    fetchScoreData()
+  }, [fetchScoreData])
 
   const handleCalculate = async () => {
     try {
@@ -120,7 +120,7 @@ export default function FinanceScoreCard() {
       await apiClient.post("/api/v1/finance-score/calculate", { save: true })
       toast({ title: "Finance score calculated successfully" })
       await fetchScoreData()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to calculate finance score",

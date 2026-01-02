@@ -64,9 +64,9 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
 
   return (
     <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 pr-2">
         <h2 className="text-base font-semibold text-foreground">Monthly Summary</h2>
-        
+
         <div className="flex gap-2">
           <select
             value={selectedMonth}
@@ -77,7 +77,7 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
               <option key={idx} value={idx + 1}>{month}</option>
             ))}
           </select>
-          
+
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}

@@ -52,8 +52,8 @@ export function NotificationCenter() {
     // Fetch unread count on mount
     fetchUnreadCount()
 
-    // Poll for new notifications every 60 seconds
-    const interval = setInterval(fetchUnreadCount, 60000)
+    // Poll for new notifications every 5 seconds
+    const interval = setInterval(fetchUnreadCount, 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -140,7 +140,7 @@ export function NotificationCenter() {
       {/* Bell Button */}
       <button
         onClick={handleToggle}
-        className="relative p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+        className="relative p-2 text-foreground/60 hover:text-foreground transition-colors"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
@@ -153,7 +153,7 @@ export function NotificationCenter() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-card border border-border rounded-lg shadow-lg z-[100] overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-muted/30">
             <h3 className="font-semibold text-foreground">Notifications</h3>

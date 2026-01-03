@@ -56,14 +56,15 @@ export function CategoryBreakdown() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Category Breakdown</h2>
-        
+    <div className="bg-card border border-border rounded-lg p-4 sm:p-6 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-base sm:text-lg font-semibold text-foreground">Category Breakdown</h2>
+
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={() => setTransactionType('debit')}
-            className={`px-3 py-1 text-sm rounded-md ${
+            className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-sm rounded-lg ${
               transactionType === 'debit'
                 ? 'bg-red-400 text-white shadow-sm'
                 : 'bg-accent text-foreground/90 hover:bg-accent/80'
@@ -72,8 +73,9 @@ export function CategoryBreakdown() {
             Expenses
           </button>
           <button
+            type="button"
             onClick={() => setTransactionType('credit')}
-            className={`px-3 py-1 text-sm rounded-md ${
+            className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-sm rounded-lg ${
               transactionType === 'credit'
                 ? 'bg-green-400 text-white shadow-sm'
                 : 'bg-accent text-foreground/90 hover:bg-accent/80'

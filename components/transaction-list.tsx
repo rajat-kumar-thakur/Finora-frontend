@@ -358,10 +358,402 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     )
   }
 
+  // Mobile Transaction Card Component
+  const TransactionCard = ({ tx }: { tx: Transaction }) => {
+    const category = categories.find(c => c.id === tx.category_id)
+    const isEditing = editingId === tx.id
+
+    if (isEditing) {
+      return (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Date</label>
+              <input
+                type="date"
+                value={editForm.date}
+                onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Type</label>
+              <select
+                value={editForm.transaction_type}
+                onChange={(e) => setEditForm({ ...editForm, transaction_type: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+              >
+                <option value="debit">Debit</option>
+                <option value="credit">Credit</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Description</label>
+            <input
+              type="text"
+              value={editForm.description}
+              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Amount</label>
+              <input
+                type="number"
+                step="0.01"
+                value={editForm.amount}
+                onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Balance</label>
+              <input
+                type="number"
+                step="0.01"
+                value={editForm.balance || ''}
+                onChange={(e) => setEditForm({ ...editForm, balance: e.target.value })}
+                placeholder="Optional"
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Category</label>
+            <select
+              value={editForm.category_id}
+              onChange={(e) => setEditForm({ ...editForm, category_id: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+            >
+              <option value="">Uncategorized</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icon} {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => saveEdit(tx.id)}
+              disabled={saving}
+              className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50"
+            >
+              Save
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="flex-1 px-4 py-2.5 bg-accent text-foreground text-sm font-medium rounded-lg hover:bg-accent/80"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="bg-card border border-border rounded-xl p-4 hover:bg-accent/30 transition-colors">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              tx.transaction_type === 'credit' ? 'bg-green-500/10' : 'bg-red-500/10'
+            }`}>
+              <svg className={`w-5 h-5 ${tx.transaction_type === 'credit' ? 'text-green-500' : 'text-red-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {tx.transaction_type === 'credit' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                )}
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-sm text-foreground truncate">{tx.description}</div>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <span className="text-xs text-muted-foreground">
+                  {new Date(tx.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </span>
+                {category && (
+                  <button
+                    onClick={() => setEditingCategoryId(tx.id)}
+                    className="text-xs px-2 py-0.5 rounded-full bg-accent/50 hover:bg-accent text-muted-foreground transition-colors"
+                  >
+                    {category.icon} {category.name}
+                  </button>
+                )}
+                {!category && (
+                  <button
+                    onClick={() => setEditingCategoryId(tx.id)}
+                    className="text-xs px-2 py-0.5 rounded-full bg-accent/50 hover:bg-accent text-muted-foreground transition-colors"
+                  >
+                    Uncategorized
+                  </button>
+                )}
+              </div>
+              {editingCategoryId === tx.id && (
+                <select
+                  value={tx.category_id || ''}
+                  onChange={(e) => updateCategory(tx.id, e.target.value)}
+                  onBlur={() => setEditingCategoryId(null)}
+                  className="mt-2 w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+                  autoFocus
+                >
+                  <option value="">Uncategorized</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon} {cat.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <div className={`text-sm font-semibold ${
+              tx.transaction_type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+            }`}>
+              {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+            {tx.balance && (
+              <div className="text-xs text-muted-foreground mt-0.5">
+                Bal: ₹{tx.balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+          <button
+            onClick={() => startEdit(tx)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete transaction: ${tx.description}?`)) {
+                deleteTransaction(tx.id)
+              }
+            }}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Mobile Add Transaction Form
+  const MobileAddForm = () => (
+    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
+      <div className="text-sm font-medium text-foreground">Add New Transaction</div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">Date</label>
+          <input
+            type="date"
+            value={newTransaction.date}
+            onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">Type</label>
+          <select
+            value={newTransaction.transaction_type}
+            onChange={(e) => setNewTransaction({ ...newTransaction, transaction_type: e.target.value })}
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+          >
+            <option value="debit">Debit</option>
+            <option value="credit">Credit</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="text-xs text-muted-foreground block mb-1">Description</label>
+        <input
+          type="text"
+          value={newTransaction.description}
+          onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
+          placeholder="Enter description"
+          className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+          autoFocus
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">Amount</label>
+          <input
+            type="number"
+            step="0.01"
+            value={newTransaction.amount}
+            onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
+            placeholder="0.00"
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">Balance</label>
+          <input
+            type="number"
+            step="0.01"
+            value={newTransaction.balance}
+            onChange={(e) => setNewTransaction({ ...newTransaction, balance: e.target.value })}
+            placeholder="Auto"
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="text-xs text-muted-foreground block mb-1">Category</label>
+        <select
+          value={newTransaction.category_id}
+          onChange={(e) => setNewTransaction({ ...newTransaction, category_id: e.target.value })}
+          className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+        >
+          <option value="">Uncategorized</option>
+          {categories.map(cat => (
+            <option key={cat.id} value={cat.id}>
+              {cat.icon} {cat.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex gap-2 pt-2">
+        <button
+          onClick={handleSaveNew}
+          disabled={saving || !newTransaction.description || !newTransaction.amount}
+          className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50"
+        >
+          Add Transaction
+        </button>
+        <button
+          onClick={() => setIsAdding(false)}
+          className="flex-1 px-4 py-2.5 bg-accent text-foreground text-sm font-medium rounded-lg hover:bg-accent/80"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+
   return (
     <div className="space-y-4">
-      {/* Table View */}
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      {/* Mobile Card View */}
+      <div className="lg:hidden space-y-3">
+        {/* Mobile Filters Toggle */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsAdding(!isAdding)}
+            className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
+          >
+            + Add Transaction
+          </button>
+        </div>
+
+        {/* Mobile Add Form */}
+        {isAdding && <MobileAddForm />}
+
+        {/* Mobile Filters */}
+        <div className="bg-card border border-border rounded-xl p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-foreground">Filters</span>
+            <button
+              onClick={() => setColumnFilters({
+                date: '',
+                description: '',
+                category_id: '',
+                transaction_type: '',
+                amount_min: '',
+                amount_max: '',
+                balance_min: '',
+                balance_max: ''
+              })}
+              className="text-xs text-primary hover:text-primary/80"
+            >
+              Clear All
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              value={columnFilters.description}
+              onChange={(e) => setColumnFilters({ ...columnFilters, description: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+              placeholder="Search..."
+            />
+            <select
+              value={columnFilters.transaction_type}
+              onChange={(e) => setColumnFilters({ ...columnFilters, transaction_type: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+            >
+              <option value="">All Types</option>
+              <option value="credit">Credit</option>
+              <option value="debit">Debit</option>
+            </select>
+          </div>
+          <select
+            value={columnFilters.category_id}
+            onChange={(e) => setColumnFilters({ ...columnFilters, category_id: e.target.value })}
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+          >
+            <option value="">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.icon} {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Transaction Cards */}
+        <div className="space-y-3">
+          {transactions.map((tx) => (
+            <TransactionCard key={tx.id} tx={tx} />
+          ))}
+        </div>
+
+        {/* Mobile Pagination */}
+        {pagination.total > 0 && (
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <div className="text-xs text-muted-foreground">
+              Showing {transactions.length} of {pagination.total} transactions
+            </div>
+            {pagination.total_pages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1}
+                  className="px-4 py-2 text-sm font-medium rounded-lg border border-border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+                <span className="text-sm font-medium text-foreground px-3">
+                  {pagination.page} / {pagination.total_pages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page >= pagination.total_pages}
+                  className="px-4 py-2 text-sm font-medium rounded-lg border border-border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden lg:block overflow-x-auto rounded-lg border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-accent/30 border-b border-border">
             <tr>

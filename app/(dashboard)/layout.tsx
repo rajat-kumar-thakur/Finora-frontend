@@ -12,6 +12,7 @@ import { getAccessToken } from '@/lib/api/auth'
 import { NotificationCenter } from '@/components/notification-center'
 import { ThemeToggle } from '@/components/theme-toggle'
 import Sidebar from '@/components/layout/sidebar'
+import { MobileNav } from '@/components/layout/mobile-nav'
 
 export default function Layout({
   children,
@@ -21,6 +22,7 @@ export default function Layout({
   const router = useRouter()
   const pathname = usePathname()
   const [isReady, setIsReady] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   
   const token = typeof window !== 'undefined' ? getAccessToken() : null
   const isAuthenticated = token && token.trim() !== ''
@@ -59,20 +61,23 @@ export default function Layout({
   
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
+      <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
       {/* Top Header Bar */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[var(--sidebar-width,256px)] z-40 h-16 bg-background/80 backdrop-blur-sm border-b border-border transition-all duration-200">
-        <div className="h-full px-6 flex items-center justify-end gap-4">
+      <header className="fixed top-0 right-0 left-0 lg:left-[var(--sidebar-width,256px)] z-40 h-14 lg:h-16 bg-background/80 backdrop-blur-sm border-b border-border transition-all duration-200">
+        <div className="h-full px-4 lg:px-6 flex items-center justify-end gap-3 lg:gap-4 pl-16 lg:pl-4">
           <ThemeToggle />
           <NotificationCenter />
         </div>
       </header>
 
       {/* Main Content - add margin to account for sidebar width and header */}
-      <main className="lg:ml-[var(--sidebar-width,256px)] pt-16 transition-all duration-200">
+      <main className="lg:ml-[var(--sidebar-width,256px)] pt-14 lg:pt-16 transition-all duration-200 pb-20 lg:pb-0">
         {children}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNav onMenuClick={() => setIsMobileMenuOpen(true)} />
     </div>
   )
 }

@@ -32,11 +32,20 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { clearTokens } from "@/lib/api/auth"
 
-export default function Sidebar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+interface SidebarProps {
+  isMobileMenuOpen?: boolean
+  setIsMobileMenuOpen?: (open: boolean) => void
+}
+
+export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMenuOpen: setExternalOpen }: SidebarProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+
+  // Use external state if provided, otherwise use internal state
+  const isMobileMenuOpen = externalOpen !== undefined ? externalOpen : internalOpen
+  const setIsMobileMenuOpen = setExternalOpen || setInternalOpen
 
   // Update CSS variable when collapsed state changes
   useEffect(() => {
@@ -90,13 +99,14 @@ export default function Sidebar() {
 
   return (
     <>
+      {/* Mobile hamburger menu button */}
       <button
         type="button"
-        className="lg:hidden fixed top-4 left-4 z-[70] p-2 rounded-lg bg-white dark:bg-[#0F0F12] shadow-md"
+        className="lg:hidden fixed top-4 left-4 z-[70] p-2.5 rounded-xl bg-white dark:bg-[#1F1F23] shadow-lg border border-gray-200 dark:border-[#2F2F33] active:scale-95 transition-transform"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         aria-label="Toggle navigation menu"
       >
-        <Menu className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+        <Menu className="h-5 w-5 text-gray-700 dark:text-gray-200" />
       </button>
       <nav
         className={cn(
@@ -232,13 +242,14 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      {/* Mobile overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-[65] lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+      {/* Mobile overlay with animation */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] lg:hidden transition-opacity duration-200",
+          isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
     </>
   )
 }

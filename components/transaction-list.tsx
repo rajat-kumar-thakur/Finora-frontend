@@ -80,7 +80,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         filterParams.transaction_type = columnFilters.transaction_type
       }
       if (columnFilters.date) {
-        filterParams.date = columnFilters.date
+        // Convert date string to datetime format (YYYY-MM-DDTHH:MM:SS) for API
+        filterParams.date = columnFilters.date + 'T00:00:00'
       }
       if (columnFilters.amount_min) {
         filterParams.amount_min = parseFloat(columnFilters.amount_min)

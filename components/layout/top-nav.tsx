@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/compon
 import { Bell, ChevronRight } from "lucide-react"
 import Profile from "@/components/layout/profile"
 import Link from "next/link"
+import Image from "next/image"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { getCurrentUserProfile, type UserProfile, getAccessToken } from "@/lib/api/auth"
 
@@ -66,6 +67,13 @@ export default function TopNav({ breadcrumbs = [] }: TopNavProps) {
 
   return (
     <nav className="px-3 sm:px-6 flex items-center justify-between bg-white dark:bg-[#0F0F12] border-b border-gray-200 dark:border-[#1F1F23] h-full">
+      {/* Mobile Logo - Centered */}
+      <div className="sm:hidden absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+        <Image src="/icon.png" alt="Finora" width={24} height={24} className="w-6 h-6 rounded-md" />
+        <span className="font-semibold text-gray-900 dark:text-white text-base">Finora</span>
+      </div>
+
+      {/* Desktop Breadcrumbs */}
       <div className="font-medium text-sm hidden sm:flex items-center space-x-1 truncate max-w-[300px]">
         {defaultBreadcrumbs.map((item, index) => (
           <div key={item.label} className="flex items-center">

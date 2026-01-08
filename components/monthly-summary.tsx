@@ -62,9 +62,6 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
     )
   }
 
-  // Short month names for mobile
-  const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
   return (
     <div className="bg-card border border-border rounded-xl p-3 sm:p-4 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4">
@@ -79,9 +76,7 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
           >
             {months.map((month, idx) => (
               <option key={idx} value={idx + 1}>
-                <span className="hidden sm:inline">{month}</span>
-                <span className="sm:hidden">{shortMonths[idx]}</span>
-                {shortMonths[idx]}
+                {month}
               </option>
             ))}
           </select>

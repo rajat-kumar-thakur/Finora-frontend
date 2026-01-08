@@ -102,7 +102,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
       {/* Mobile hamburger menu button */}
       <button
         type="button"
-        className="lg:hidden fixed top-4 left-4 z-[70] p-2.5 rounded-xl bg-white dark:bg-[#1F1F23] shadow-lg border border-gray-200 dark:border-[#2F2F33] active:scale-95 transition-transform"
+        className="lg:hidden fixed top-2 left-4 z-[70] p-2.5 rounded-xl bg-white dark:bg-[#1F1F23] shadow-lg border border-gray-200 dark:border-[#2F2F33] active:scale-95 transition-transform"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         aria-label="Toggle navigation menu"
       >

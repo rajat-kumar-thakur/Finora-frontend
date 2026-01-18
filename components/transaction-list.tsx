@@ -182,20 +182,40 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
   const saveEdit = async (id: string) => {
     setSaving(true)
+
+    // Prepare the update data
+    const updateData = {
+      date: editForm.date as string,
+      description: editForm.description as string,
+      amount: parseFloat(editForm.amount as string),
+      transaction_type: editForm.transaction_type as 'debit' | 'credit',
+      category_id: editForm.category_id ? String(editForm.category_id) : undefined,
+      balance: editForm.balance ? parseFloat(editForm.balance as string) : undefined,
+    }
+
+    // Optimistic update - update UI immediately
+    const previousTransactions = transactions
+    setTransactions(prev => prev.map(tx => {
+      if (tx.id !== id) return tx
+      return {
+        ...tx,
+        date: updateData.date + 'T00:00:00',
+        description: updateData.description,
+        amount: updateData.amount,
+        transaction_type: updateData.transaction_type,
+        category_id: updateData.category_id || null,
+        balance: updateData.balance || tx.balance,
+      }
+    }))
+    setEditingId(null)
+    setEditForm({})
+
     try {
-      await transactionApi.update(id, {
-        date: editForm.date as string,
-        description: editForm.description as string,
-        amount: parseFloat(editForm.amount as string),
-        transaction_type: editForm.transaction_type as 'debit' | 'credit',
-        category_id: editForm.category_id ? String(editForm.category_id) : undefined,
-        balance: editForm.balance ? parseFloat(editForm.balance as string) : undefined,
-      })
-      await loadTransactions()
-      setEditingId(null)
-      setEditForm({})
-      if (onUpdate) onUpdate()  // Refresh parent component
+      await transactionApi.update(id, updateData)
+      if (onUpdate) onUpdate()  // Refresh parent component (for balance updates etc.)
     } catch (err) {
+      // Revert on failure
+      setTransactions(previousTransactions)
       setError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
       setSaving(false)
@@ -204,30 +224,55 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
   const handleSaveNew = async () => {
     if (!newTransaction.description || !newTransaction.amount) return
-    
+
     setSaving(true)
+
+    // Create optimistic transaction with temporary ID
+    const tempId = `temp-${Date.now()}`
+    const optimisticTx: Transaction = {
+      id: tempId,
+      date: newTransaction.date + 'T00:00:00',
+      description: newTransaction.description,
+      amount: parseFloat(newTransaction.amount),
+      transaction_type: newTransaction.transaction_type as 'credit' | 'debit',
+      category_id: newTransaction.category_id || null,
+      balance: newTransaction.balance ? parseFloat(newTransaction.balance) : null,
+      source: 'manual',
+      created_at: new Date().toISOString(),
+    }
+
+    // Optimistic update - add to list immediately
+    const previousTransactions = transactions
+    setTransactions(prev => [optimisticTx, ...prev])
+    setIsAdding(false)
+    const savedNewTransaction = { ...newTransaction }
+    setNewTransaction({
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      amount: '',
+      transaction_type: 'debit',
+      category_id: '',
+      balance: ''
+    })
+
     try {
-      await transactionApi.create({
-        date: newTransaction.date,
-        description: newTransaction.description,
-        amount: parseFloat(newTransaction.amount),
-        transaction_type: newTransaction.transaction_type as 'credit' | 'debit',
-        category_id: newTransaction.category_id || undefined,
-        balance: newTransaction.balance ? parseFloat(newTransaction.balance) : undefined,
+      const created = await transactionApi.create({
+        date: savedNewTransaction.date,
+        description: savedNewTransaction.description,
+        amount: parseFloat(savedNewTransaction.amount),
+        transaction_type: savedNewTransaction.transaction_type as 'credit' | 'debit',
+        category_id: savedNewTransaction.category_id || undefined,
+        balance: savedNewTransaction.balance ? parseFloat(savedNewTransaction.balance) : undefined,
       })
-      
-      await loadTransactions()
-      setIsAdding(false)
-      setNewTransaction({
-        date: new Date().toISOString().split('T')[0],
-        description: '',
-        amount: '',
-        transaction_type: 'debit',
-        category_id: '',
-        balance: ''
-      })
+
+      // Replace temp transaction with real one
+      setTransactions(prev => prev.map(tx =>
+        tx.id === tempId ? { ...created } : tx
+      ))
       if (onUpdate) onUpdate()
     } catch (err) {
+      // Revert on failure
+      setTransactions(previousTransactions)
       setError(err instanceof Error ? err.message : 'Failed to create transaction')
     } finally {
       setSaving(false)
@@ -235,11 +280,16 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
   }
 
   const deleteTransaction = async (id: string) => {
+    // Optimistic delete - remove from UI immediately
+    const previousTransactions = transactions
+    setTransactions(prev => prev.filter(tx => tx.id !== id))
+
     try {
       await transactionApi.delete(id)
-      await loadTransactions()
       if (onUpdate) onUpdate()  // Refresh parent component
     } catch (err) {
+      // Revert on failure
+      setTransactions(previousTransactions)
       setError(err instanceof Error ? err.message : 'Failed to delete')
     }
   }

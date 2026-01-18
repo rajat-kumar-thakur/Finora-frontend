@@ -159,3 +159,591 @@
     scrollbar-width: none;
   }
 }
+
+/* ===========================================
+   CONSISTENT UI DESIGN SYSTEM
+   =========================================== */
+
+/* Page Container - consistent wrapper for all dashboard pages */
+@utility page-container {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .page-container {
+    padding: 1.5rem;
+  }
+}
+
+/* Page Header - consistent title and subtitle */
+@utility page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+@utility page-title {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.025em;
+}
+@media (min-width: 1024px) {
+  .page-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+
+@utility page-subtitle {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+/* Card styles - consistent card appearance */
+@utility card-base {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+@utility card-padding {
+  padding: 1rem;
+}
+@media (min-width: 1024px) {
+  .card-padding {
+    padding: 1.5rem;
+  }
+}
+
+/* Section Header inside cards */
+@utility section-title {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+@utility section-subtitle {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+/* Form Input - consistent input styling */
+@utility input-base {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: all 150ms;
+}
+.input-base::placeholder {
+  color: var(--muted-foreground);
+}
+.input-base:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--primary);
+  border-color: transparent;
+}
+.input-base:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@utility input-sm {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: all 150ms;
+}
+.input-sm::placeholder {
+  color: var(--muted-foreground);
+}
+.input-sm:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary);
+  border-color: transparent;
+}
+.input-sm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Label styling */
+@utility label-base {
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+/* Button styles - consistent button appearance */
+@utility btn-primary {
+  padding: 0.625rem 1rem;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition: color 150ms, background-color 150ms;
+}
+.btn-primary:hover {
+  background-color: color-mix(in oklch, var(--primary) 90%, transparent);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@utility btn-secondary {
+  padding: 0.625rem 1rem;
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition: color 150ms, background-color 150ms;
+}
+.btn-secondary:hover {
+  background-color: color-mix(in oklch, var(--secondary) 80%, transparent);
+}
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@utility btn-outline {
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--border);
+  background-color: transparent;
+  color: var(--foreground);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition: color 150ms, background-color 150ms;
+}
+.btn-outline:hover {
+  background-color: var(--accent);
+}
+.btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@utility btn-ghost {
+  padding: 0.625rem 1rem;
+  background-color: transparent;
+  color: var(--foreground);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition: color 150ms, background-color 150ms;
+}
+.btn-ghost:hover {
+  background-color: var(--accent);
+}
+.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Alert/Message styles - consistent feedback */
+@utility alert-error {
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklch, var(--destructive) 20%, transparent);
+  background-color: color-mix(in oklch, var(--destructive) 10%, transparent);
+  color: var(--destructive);
+}
+
+@utility alert-success {
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklch, oklch(0.6 0.18 145) 20%, transparent);
+  background-color: color-mix(in oklch, oklch(0.6 0.18 145) 10%, transparent);
+  color: oklch(0.5 0.15 145);
+}
+.dark .alert-success {
+  color: oklch(0.7 0.18 145);
+}
+
+@utility alert-warning {
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklch, oklch(0.75 0.15 85) 20%, transparent);
+  background-color: color-mix(in oklch, oklch(0.75 0.15 85) 10%, transparent);
+  color: oklch(0.55 0.15 85);
+}
+.dark .alert-warning {
+  color: oklch(0.75 0.15 85);
+}
+
+@utility alert-info {
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 20%, transparent);
+  background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+
+/* Tab styles - consistent tab navigation */
+@utility tab-container {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+@utility tab-item {
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  transition: color 150ms, background-color 150ms;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+@utility tab-active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+@utility tab-inactive {
+  color: var(--muted-foreground);
+  border-bottom-color: transparent;
+}
+.tab-inactive:hover {
+  color: var(--foreground);
+  background-color: color-mix(in oklch, var(--accent) 50%, transparent);
+}
+
+/* Toggle/Pill tabs */
+@utility tab-pill-container {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background-color: var(--muted);
+  border-radius: 0.5rem;
+}
+
+@utility tab-pill {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition: color 150ms, background-color 150ms;
+}
+@media (min-width: 640px) {
+  .tab-pill {
+    flex: none;
+  }
+}
+
+@utility tab-pill-active {
+  background-color: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+@utility tab-pill-inactive {
+  color: var(--muted-foreground);
+}
+.tab-pill-inactive:hover {
+  color: var(--foreground);
+}
+
+/* Loading spinner - consistent loading state */
+@utility spinner {
+  height: 2rem;
+  width: 2rem;
+  border: 4px solid var(--primary);
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+@utility spinner-sm {
+  height: 1.25rem;
+  width: 1.25rem;
+  border: 2px solid color-mix(in oklch, var(--primary-foreground) 30%, transparent);
+  border-top-color: var(--primary-foreground);
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+/* Empty state */
+@utility empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+@utility empty-state-icon {
+  height: 3rem;
+  width: 3rem;
+  color: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
+  margin-bottom: 1rem;
+}
+
+@utility empty-state-title {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+@utility empty-state-text {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+/* Grid layouts */
+@utility grid-dashboard {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+@media (min-width: 1024px) {
+  .grid-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@utility grid-cards {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .grid-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .grid-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* Stat card - for displaying metrics */
+@utility stat-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  padding: 1rem;
+}
+@media (min-width: 1024px) {
+  .stat-card {
+    padding: 1.5rem;
+  }
+}
+
+@utility stat-label {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+@utility stat-value {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-top: 0.25rem;
+}
+@media (min-width: 1024px) {
+  .stat-value {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+
+@utility stat-change-positive {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: oklch(0.5 0.15 145);
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.dark .stat-change-positive {
+  color: oklch(0.7 0.18 145);
+}
+
+@utility stat-change-negative {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--destructive);
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Badge styles */
+@utility badge-base {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+}
+
+@utility badge-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+
+@utility badge-success {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  background-color: color-mix(in oklch, oklch(0.6 0.18 145) 10%, transparent);
+  color: oklch(0.5 0.15 145);
+}
+.dark .badge-success {
+  color: oklch(0.7 0.18 145);
+}
+
+@utility badge-warning {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  background-color: color-mix(in oklch, oklch(0.75 0.15 85) 10%, transparent);
+  color: oklch(0.55 0.15 85);
+}
+.dark .badge-warning {
+  color: oklch(0.75 0.15 85);
+}
+
+@utility badge-destructive {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  background-color: color-mix(in oklch, var(--destructive) 10%, transparent);
+  color: var(--destructive);
+}
+
+@utility badge-muted {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+/* Feature icon container */
+@utility icon-box {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@utility icon-box-lg {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Divider */
+@utility divider {
+  border-top: 1px solid var(--border);
+  margin: 1rem 0;
+}
+
+/* Action row - buttons aligned to the right */
+@utility action-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Header row - title on left, actions on right */
+@utility header-row {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .header-row {
+    flex-direction: row;
+    align-items: center;
+  }
+}

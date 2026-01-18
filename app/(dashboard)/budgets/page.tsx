@@ -10,15 +10,11 @@ import { BudgetManagement } from '@/components/budget-management'
 
 export default function BudgetsPage() {
   return (
-    <div className="space-y-4 p-4 lg:p-6">
+    <div className="page-container">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-          Budgets
-        </h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Set spending limits for categories and track your progress
-        </p>
+      <div className="page-header">
+        <h1 className="page-title">Budgets</h1>
+        <p className="page-subtitle">Set spending limits for categories and track your progress</p>
       </div>
 
       {/* Budget Management */}

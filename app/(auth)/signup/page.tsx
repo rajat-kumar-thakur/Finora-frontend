@@ -96,8 +96,8 @@ export default function SignupPage() {
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">What you&apos;ll get</h3>
 
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <Upload className="w-5 h-5 text-green-500" />
+              <div className="icon-box">
+                <Upload className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <p className="font-medium text-foreground">AI-Powered PDF Import</p>
@@ -106,8 +106,8 @@ export default function SignupPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-blue-500" />
+              <div className="icon-box">
+                <BarChart3 className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <p className="font-medium text-foreground">Smart Analytics</p>
@@ -116,8 +116,8 @@ export default function SignupPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-purple-500" />
+              <div className="icon-box">
+                <FileText className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <p className="font-medium text-foreground">Export Reports</p>
@@ -168,13 +168,13 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800">
+              <div className="alert-error">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="full_name" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="full_name" className="label-base">
                 Full name <span className="text-muted-foreground font-normal">(optional)</span>
               </label>
               <input
@@ -185,13 +185,13 @@ export default function SignupPage() {
                 value={formData.full_name}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="input-base"
                 placeholder="John Doe"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="email" className="label-base">
                 Email address
               </label>
               <input
@@ -203,13 +203,13 @@ export default function SignupPage() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="input-base"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="password" className="label-base">
                 Password
               </label>
               <input
@@ -221,7 +221,7 @@ export default function SignupPage() {
                 value={formData.password}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="input-base"
                 placeholder="••••••••"
               />
               <p className="mt-1.5 text-xs text-muted-foreground">
@@ -230,7 +230,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="confirmPassword" className="label-base">
                 Confirm password
               </label>
               <input
@@ -242,7 +242,7 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="input-base"
                 placeholder="••••••••"
               />
             </div>
@@ -250,11 +250,11 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
             >
               {loading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  <div className="spinner-sm" />
                   Creating account...
                 </>
               ) : (

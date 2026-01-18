@@ -87,7 +87,7 @@ function LoginForm() {
 
           <div className="space-y-6">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="icon-box-lg">
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -97,7 +97,7 @@ function LoginForm() {
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="icon-box-lg">
                 <PieChart className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -107,7 +107,7 @@ function LoginForm() {
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="icon-box-lg">
                 <Shield className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -142,13 +142,13 @@ function LoginForm() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800">
+              <div className="alert-error">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="email" className="label-base">
                 Email address
               </label>
               <input
@@ -160,13 +160,13 @@ function LoginForm() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="input-base"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="password" className="label-base">
                 Password
               </label>
               <input
@@ -178,7 +178,7 @@ function LoginForm() {
                 value={formData.password}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="input-base"
                 placeholder="••••••••"
               />
             </div>
@@ -186,11 +186,11 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  <div className="spinner-sm" />
                   Signing in...
                 </>
               ) : (
@@ -217,7 +217,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="spinner" />
       </div>
     }>
       <LoginForm />

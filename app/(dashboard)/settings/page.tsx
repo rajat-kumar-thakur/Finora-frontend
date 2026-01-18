@@ -232,13 +232,13 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-4 p-4 lg:p-6">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Manage your account and preferences</p>
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Settings</h1>
+          <p className="page-subtitle">Manage your account and preferences</p>
         </div>
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+          <div className="spinner" />
         </div>
       </div>
     )
@@ -251,15 +251,15 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="space-y-4 p-4 lg:p-6">
+    <div className="page-container">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Settings</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Manage your account and preferences</p>
+      <div className="page-header">
+        <h1 className="page-title">Settings</h1>
+        <p className="page-subtitle">Manage your account and preferences</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="tab-container">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -269,11 +269,7 @@ export default function SettingsPage() {
               setSuccess(null)
             }}
             type="button"
-            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              activeTab === tab.id
-                ? 'text-primary border-primary'
-                : 'text-muted-foreground border-transparent hover:text-foreground'
-            }`}
+            className={`tab-item ${activeTab === tab.id ? 'tab-active' : 'tab-inactive'}`}
           >
             {tab.label}
           </button>
@@ -282,21 +278,17 @@ export default function SettingsPage() {
 
       {/* Messages */}
       {error && (
-        <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
+        <div className="alert-error">{error}</div>
       )}
       {success && (
-        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-          <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
-        </div>
+        <div className="alert-success">{success}</div>
       )}
 
       {/* Profile Tab */}
       {activeTab === 'profile' && user && (
-        <div className="space-y-4">
-          <div className="bg-card border border-border rounded-lg p-4 lg:p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Profile Information</h2>
+        <div className="space-y-6">
+          <div className="card-base card-padding">
+            <h2 className="section-title mb-4">Profile Information</h2>
             <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-md">
               <div>
                 <label htmlFor="profile-email" className="block text-sm font-medium text-foreground mb-1">
@@ -307,7 +299,7 @@ export default function SettingsPage() {
                   type="email"
                   value={user.email}
                   disabled
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-muted text-muted-foreground cursor-not-allowed text-sm"
+                  className="input-sm bg-muted text-muted-foreground cursor-not-allowed"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Change email in Security tab
@@ -322,7 +314,7 @@ export default function SettingsPage() {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  className="input-sm"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -339,13 +331,13 @@ export default function SettingsPage() {
                     day: 'numeric'
                   })}
                   disabled
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-muted text-muted-foreground cursor-not-allowed text-sm"
+                  className="input-sm bg-muted text-muted-foreground cursor-not-allowed"
                 />
               </div>
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
+                className="btn-primary"
               >
                 {savingProfile ? 'Saving...' : 'Save Changes'}
               </button>
@@ -356,10 +348,10 @@ export default function SettingsPage() {
 
       {/* Security Tab */}
       {activeTab === 'security' && user && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Change Email */}
-          <div className="bg-card border border-border rounded-lg p-4 lg:p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Change Email</h2>
+          <div className="card-base card-padding">
+            <h2 className="section-title mb-4">Change Email</h2>
             <form onSubmit={handleChangeEmail} className="space-y-4 max-w-md">
               <div>
                 <label htmlFor="current-email" className="block text-sm font-medium text-foreground mb-1">
@@ -370,7 +362,7 @@ export default function SettingsPage() {
                   type="email"
                   value={user.email}
                   disabled
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-muted text-muted-foreground cursor-not-allowed text-sm"
+                  className="input-sm bg-muted text-muted-foreground cursor-not-allowed"
                 />
               </div>
               <div>
@@ -382,7 +374,7 @@ export default function SettingsPage() {
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  className="input-sm"
                   placeholder="Enter new email address"
                 />
               </div>
@@ -395,14 +387,14 @@ export default function SettingsPage() {
                   type="password"
                   value={emailPassword}
                   onChange={(e) => setEmailPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  className="input-sm"
                   placeholder="Verify with your password"
                 />
               </div>
               <button
                 type="submit"
                 disabled={savingEmail}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
+                className="btn-primary"
               >
                 {savingEmail ? 'Changing...' : 'Change Email'}
               </button>
@@ -410,8 +402,8 @@ export default function SettingsPage() {
           </div>
 
           {/* Change Password */}
-          <div className="bg-card border border-border rounded-lg p-4 lg:p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Change Password</h2>
+          <div className="card-base card-padding">
+            <h2 className="section-title mb-4">Change Password</h2>
             <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
               <div>
                 <label htmlFor="current-password" className="block text-sm font-medium text-foreground mb-1">
@@ -422,7 +414,7 @@ export default function SettingsPage() {
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  className="input-sm"
                   placeholder="Enter current password"
                 />
               </div>
@@ -435,7 +427,7 @@ export default function SettingsPage() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  className="input-sm"
                   placeholder="Min 8 characters"
                 />
               </div>
@@ -448,14 +440,14 @@ export default function SettingsPage() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  className="input-sm"
                   placeholder="Confirm new password"
                 />
               </div>
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
+                className="btn-primary"
               >
                 {savingPassword ? 'Changing...' : 'Change Password'}
               </button>
@@ -466,10 +458,10 @@ export default function SettingsPage() {
 
       {/* Notifications Tab */}
       {activeTab === 'notifications' && alertPrefs && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Email Notifications */}
-          <div className="bg-card border border-border rounded-lg p-4 lg:p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Email Notifications</h2>
+          <div className="card-base card-padding">
+            <h2 className="section-title mb-4">Email Notifications</h2>
             <div className="space-y-4">
               {/* Master Switch */}
               <div className="flex items-center justify-between py-3 border-b border-border">
@@ -509,7 +501,7 @@ export default function SettingsPage() {
                             email_address: e.target.value || null,
                           },
                         })}
-                        className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                        className="flex-1 input-sm"
                         placeholder="alternate@email.com"
                       />
                       <button
@@ -518,7 +510,7 @@ export default function SettingsPage() {
                           email_address: alertPrefs.email_preferences.email_address,
                         })}
                         disabled={savingNotifications}
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
+                        className="btn-primary"
                       >
                         Save
                       </button>
@@ -591,8 +583,8 @@ export default function SettingsPage() {
           </div>
 
           {/* Alert Thresholds */}
-          <div className="bg-card border border-border rounded-lg p-4 lg:p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">Alert Thresholds</h2>
+          <div className="card-base card-padding">
+            <h2 className="section-title mb-4">Alert Thresholds</h2>
             <div className="space-y-4 max-w-md">
               <div>
                 <label htmlFor="low-balance-threshold" className="block font-medium text-foreground text-sm mb-1">
@@ -614,7 +606,7 @@ export default function SettingsPage() {
                         low_balance_threshold: parseFloat(e.target.value) || 0,
                       },
                     })}
-                    className="w-32 px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    className="w-32 input-sm"
                     min="0"
                     step="100"
                   />
@@ -624,7 +616,7 @@ export default function SettingsPage() {
                       low_balance_threshold: alertPrefs.thresholds.low_balance_threshold,
                     })}
                     disabled={savingNotifications}
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
+                    className="btn-primary"
                   >
                     Save
                   </button>
@@ -650,7 +642,7 @@ export default function SettingsPage() {
                         budget_warning_percent: parseInt(e.target.value) || 80,
                       },
                     })}
-                    className="w-20 px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    className="w-20 input-sm"
                     min="50"
                     max="100"
                   />
@@ -661,7 +653,7 @@ export default function SettingsPage() {
                       budget_warning_percent: alertPrefs.thresholds.budget_warning_percent,
                     })}
                     disabled={savingNotifications}
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
+                    className="btn-primary"
                   >
                     Save
                   </button>
@@ -671,9 +663,9 @@ export default function SettingsPage() {
           </div>
 
           {/* Alert Frequency */}
-          <div className="bg-card border border-border rounded-lg p-4 lg:p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-2">Alert Frequency</h2>
-            <p className="text-xs text-muted-foreground mb-4">
+          <div className="card-base card-padding">
+            <h2 className="section-title mb-2">Alert Frequency</h2>
+            <p className="section-subtitle mb-4">
               Control how often you receive repeated alerts. Set to 0 hours to receive an alert every time the threshold is crossed.
             </p>
             <div className="space-y-4 max-w-md">
@@ -700,7 +692,7 @@ export default function SettingsPage() {
                       handleUpdateDeduplication({ budget_alert_hours: value })
                     }}
                     disabled={savingNotifications}
-                    className="px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    className="input-sm"
                   >
                     <option value={0}>Every time (no cooldown)</option>
                     <option value={1}>1 hour</option>
@@ -736,7 +728,7 @@ export default function SettingsPage() {
                       handleUpdateDeduplication({ low_balance_alert_hours: value })
                     }}
                     disabled={savingNotifications}
-                    className="px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    className="input-sm"
                   >
                     <option value={0}>Every time (no cooldown)</option>
                     <option value={1}>1 hour</option>

@@ -10,15 +10,11 @@ import { CategoryManagement } from '@/components/category-management'
 
 export default function CategoriesPage() {
   return (
-    <div className="space-y-4 p-4 lg:p-6">
+    <div className="page-container">
       {/* Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-          Categories
-        </h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Manage categories for transaction classification
-        </p>
+      <div className="page-header">
+        <h1 className="page-title">Categories</h1>
+        <p className="page-subtitle">Manage categories for transaction classification</p>
       </div>
 
       {/* Category Management */}

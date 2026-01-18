@@ -166,8 +166,8 @@ export function LandingPage() {
                     <CardContent className="p-6">
                       <div className="text-sm font-medium text-muted-foreground">Net Worth</div>
                       <div className="mt-2 text-3xl font-bold">$47,250.00</div>
-                      <div className="mt-2 flex items-center text-sm text-green-600 dark:text-green-400">
-                        <TrendingUp className="mr-1 h-4 w-4" />
+                      <div className="stat-change-positive">
+                        <TrendingUp className="h-4 w-4" />
                         +12.5% this month
                       </div>
                     </CardContent>
@@ -269,7 +269,7 @@ export function LandingPage() {
             {features.map((feature) => (
               <Card key={feature.title} className="relative overflow-hidden transition-all hover:shadow-lg">
                 <CardContent className="p-6">
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="icon-box-lg mb-4">
                     <feature.icon className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>

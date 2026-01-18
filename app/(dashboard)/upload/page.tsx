@@ -23,38 +23,26 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="space-y-4 p-4 lg:p-6">
+    <div className="page-container">
       {/* Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-          Upload Transactions
-        </h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Upload bank statement PDF or image to extract transactions
-        </p>
+      <div className="page-header">
+        <h1 className="page-title">Upload Transactions</h1>
+        <p className="page-subtitle">Upload bank statement PDF or image to extract transactions</p>
       </div>
 
       {/* Upload Type Tabs */}
-      <div className="flex gap-1 sm:gap-2 border-b border-border pb-2">
+      <div className="tab-pill-container">
         <button
           type="button"
           onClick={() => setActiveTab('pdf')}
-          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
-            activeTab === 'pdf'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-          }`}
+          className={`tab-pill ${activeTab === 'pdf' ? 'tab-pill-active' : 'tab-pill-inactive'}`}
         >
           PDF Upload
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('image')}
-          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
-            activeTab === 'image'
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-          }`}
+          className={`tab-pill ${activeTab === 'image' ? 'tab-pill-active' : 'tab-pill-inactive'}`}
         >
           Image Upload
         </button>
@@ -69,9 +57,7 @@ export default function UploadPage() {
 
       {/* Recent Uploads */}
       <div>
-        <h2 className="text-base font-semibold text-foreground mb-3">
-          Recent Transactions
-        </h2>
+        <h2 className="section-title mb-4">Recent Transactions</h2>
         <TransactionList refreshTrigger={refreshTrigger} />
       </div>
     </div>

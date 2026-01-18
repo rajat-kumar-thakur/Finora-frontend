@@ -19,22 +19,16 @@ export default function InvestmentsPage() {
   }
 
   return (
-    <div className="space-y-4 p-4 lg:p-6">
+    <div className="page-container">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-            Investments
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Manage your stocks and mutual funds portfolio
-          </p>
-        </div>
+      <div className="page-header">
+        <h1 className="page-title">Investments</h1>
+        <p className="page-subtitle">Manage your stocks and mutual funds portfolio</p>
       </div>
 
       {/* Portfolio Summary */}
       <PortfolioSummaryView refreshTrigger={refreshTrigger} />
-      
+
       {/* Investment List */}
       <InvestmentList onUpdate={handleUpdate} />
 

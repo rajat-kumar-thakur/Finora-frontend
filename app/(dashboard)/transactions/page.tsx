@@ -21,23 +21,19 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="space-y-4 p-4 lg:p-6">
+    <div className="page-container">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-            Transactions
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            View and manage all your transactions
-          </p>
+      <div className="header-row">
+        <div className="page-header">
+          <h1 className="page-title">Transactions</h1>
+          <p className="page-subtitle">View and manage all your transactions</p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setShowCreate(true)}
-            className="hidden sm:flex px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm font-medium"
+            className="hidden sm:flex btn-primary"
           >
             + Add Transaction
           </button>

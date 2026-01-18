@@ -31,25 +31,25 @@ export default function DashboardPage() {
 
   return (
     <div className="h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4rem)] overflow-y-auto bg-background">
-      <div className="max-w-7xl mx-auto p-4 lg:p-6 space-y-4">
+      <div className="max-w-7xl mx-auto page-container">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Welcome to your financial overview</p>
+        <div className="header-row">
+          <div className="page-header">
+            <h1 className="page-title">Dashboard</h1>
+            <p className="page-subtitle">Welcome to your financial overview</p>
           </div>
           <Link
             href="/upload"
-            className="px-4 py-2.5 text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium transition-colors shadow-sm text-center sm:w-auto w-full"
+            className="btn-primary text-center sm:w-auto w-full"
           >
             Upload Statement
           </Link>
         </div>
 
         {/* Main Grid - Mobile-first: stacked, then side-by-side on large screens */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 pb-4">
           {/* Left Column - Accounts & Summary */}
-          <div className="lg:col-span-2 space-y-4 order-1">
+          <div className="lg:col-span-2 space-y-4 lg:space-y-6 order-1">
             {/* Total Balance / Accounts */}
             <NetWorthCard refreshTrigger={refreshTrigger} />
 
@@ -59,12 +59,12 @@ export default function DashboardPage() {
 
           {/* Right Column - Recent Transactions */}
           <div className="lg:col-span-1 order-2">
-            <div className="bg-card rounded-xl border border-border shadow-sm p-3 sm:p-4">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <h2 className="text-sm sm:text-base font-semibold text-foreground">Recent Transactions</h2>
+            <div className="card-base card-padding">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="section-title">Recent Transactions</h2>
                 <Link
                   href="/transactions"
-                  className="text-xs text-primary hover:text-primary/80 transition-colors"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   View All →
                 </Link>

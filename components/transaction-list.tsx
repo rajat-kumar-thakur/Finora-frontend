@@ -229,6 +229,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
     // Create optimistic transaction with temporary ID
     const tempId = `temp-${Date.now()}`
+    const category = categories.find(c => c.id === newTransaction.category_id)
     const optimisticTx: Transaction = {
       id: tempId,
       date: newTransaction.date + 'T00:00:00',
@@ -236,6 +237,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       amount: parseFloat(newTransaction.amount),
       transaction_type: newTransaction.transaction_type as 'credit' | 'debit',
       category_id: newTransaction.category_id || null,
+      category_name: category?.name || null,
       balance: newTransaction.balance ? parseFloat(newTransaction.balance) : null,
       source: 'manual',
       created_at: new Date().toISOString(),

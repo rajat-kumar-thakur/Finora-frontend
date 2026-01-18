@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { CursorSpotlight } from "@/components/cursor-spotlight"
 
 // Implemented features (Phase 0, 1A, 1B - Complete)
 const features = [
@@ -75,6 +76,7 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <CursorSpotlight />
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

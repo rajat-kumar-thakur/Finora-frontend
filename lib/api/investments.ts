@@ -38,12 +38,20 @@ export interface InvestmentUpdate {
   purchase_date?: string
 }
 
+export interface TypeReturns {
+  value: number
+  cost: number
+  return: number
+  return_percentage: number
+}
+
 export interface PortfolioSummary {
   total_value: number
   total_cost: number
   total_return: number
   return_percentage: number
   allocation: Record<string, number>
+  returns_by_type: Record<string, TypeReturns>
 }
 
 export const investmentApi = {

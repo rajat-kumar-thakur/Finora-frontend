@@ -12,16 +12,17 @@ import {
   BarChart3,
   ArrowRight,
   Target,
-  Bell,
   FileText,
-  Landmark
+  Landmark,
+  MessageSquare,
+  Lightbulb
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { CursorSpotlight } from "@/components/cursor-spotlight"
 
-// Implemented features (Phase 0, 1A, 1B - Complete)
+// Implemented features (Phase 0, 1A, 1B, 2, 3 - Complete)
 const features = [
   {
     icon: Upload,
@@ -44,6 +45,16 @@ const features = [
     description: "Monthly summaries and category-wise breakdowns."
   },
   {
+    icon: Target,
+    title: "Budgets & Alerts",
+    description: "Set spending budgets and get notified when you're close to limits."
+  },
+  {
+    icon: Landmark,
+    title: "Investment Tracking",
+    description: "Track stocks, mutual funds, and other investments in one place."
+  },
+  {
     icon: FileText,
     title: "Export Reports",
     description: "Export to PDF, Excel, or CSV formats."
@@ -55,12 +66,11 @@ const features = [
   }
 ]
 
-// Upcoming features (Phase 2-5)
+// Upcoming features (Phase 4)
 const upcomingFeatures = [
-  { icon: Target, text: "Budgets & Alerts" },
-  { icon: Landmark, text: "Investment Tracking" },
   { icon: Zap, text: "AI Financial Assistant" },
-  { icon: Bell, text: "Auto Bank Sync" }
+  { icon: MessageSquare, text: "Chat with Your Finances" },
+  { icon: Lightbulb, text: "Personalized Tips" }
 ]
 
 export function LandingPage() {

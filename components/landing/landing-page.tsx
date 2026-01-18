@@ -20,44 +20,46 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
 
+// Implemented features (Phase 0, 1A, 1B - Complete)
 const features = [
   {
     icon: Upload,
     title: "PDF Statement Import",
-    description: "Upload your bank statements and let AI automatically extract and categorize transactions."
+    description: "Upload bank statements and let AI extract transactions automatically."
   },
   {
     icon: PieChart,
     title: "Smart Categorization",
-    description: "Transactions are automatically categorized using intelligent rules. Customize categories to match your needs."
+    description: "Auto-categorize transactions with customizable categories."
   },
   {
     icon: TrendingUp,
     title: "Net Worth Tracking",
-    description: "Track your total net worth across all bank accounts with real-time balance updates."
+    description: "Track your net worth across all bank accounts."
   },
   {
     icon: BarChart3,
     title: "Financial Insights",
-    description: "Get monthly summaries, category breakdowns, and spending trends at a glance."
+    description: "Monthly summaries and category-wise breakdowns."
   },
   {
     icon: FileText,
     title: "Export Reports",
-    description: "Export your financial data to PDF, Excel, or CSV for record keeping and analysis."
+    description: "Export to PDF, Excel, or CSV formats."
   },
   {
     icon: Shield,
     title: "Secure & Private",
-    description: "Your financial data is encrypted and stored securely. We never share your information."
+    description: "Encrypted data with JWT authentication."
   }
 ]
 
+// Upcoming features (Phase 2-5)
 const upcomingFeatures = [
-  { icon: Target, text: "Budgeting & Goals" },
-  { icon: Bell, text: "Smart Alerts" },
+  { icon: Target, text: "Budgets & Alerts" },
   { icon: Landmark, text: "Investment Tracking" },
-  { icon: Zap, text: "AI-Powered Insights" }
+  { icon: Zap, text: "AI Financial Assistant" },
+  { icon: Bell, text: "Auto Bank Sync" }
 ]
 
 export function LandingPage() {
@@ -94,8 +96,8 @@ export function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-32">
+      {/* Hero Section - pt-16 accounts for fixed header, min-h-[calc(100vh-4rem)] ensures content below is visible */}
+      <section className="relative overflow-hidden h-[calc(100vh-4rem)] flex items-center justify-center mt-16">
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
           <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
@@ -130,24 +132,24 @@ export function LandingPage() {
       </section>
 
       {/* Dashboard Preview Section */}
-      <section className="py-20 sm:py-32">
+      <section className="min-h-screen flex flex-col justify-center py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl not-italic">
               Your Financial Dashboard
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
+            <p className="mt-3 text-lg text-muted-foreground">
               Everything you need to manage your finances in one beautiful interface
             </p>
           </div>
 
           {/* Mock Dashboard Preview */}
-          <div className="relative mx-auto max-w-5xl">
+          <div className="relative mx-auto max-w-7xl">
             <div className="rounded-xl border bg-card shadow-2xl overflow-hidden">
               {/* Mock Header */}
-              <div className="border-b bg-muted/30 px-6 py-4">
+              <div className="border-b bg-muted/30 px-5 py-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-red-500" />
                     <div className="h-3 w-3 rounded-full bg-yellow-500" />
                     <div className="h-3 w-3 rounded-full bg-green-500" />
@@ -158,7 +160,7 @@ export function LandingPage() {
 
               {/* Mock Dashboard Content */}
               <div className="p-6 sm:p-8">
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {/* Net Worth Card */}
                   <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
                     <CardContent className="p-6">
@@ -191,26 +193,25 @@ export function LandingPage() {
                 </div>
 
                 {/* Mock Chart Area */}
-                <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <div className="mt-6 grid gap-5 lg:grid-cols-2">
                   <Card>
                     <CardContent className="p-6">
-                      <div className="mb-4 font-semibold">Spending by Category</div>
+                      <div className="mb-4 text-lg font-semibold">Spending by Category</div>
                       <div className="space-y-3">
                         {[
                           { name: "Housing", amount: "$1,200", percent: 35, color: "bg-blue-500" },
                           { name: "Food & Dining", amount: "$650", percent: 19, color: "bg-green-500" },
                           { name: "Transportation", amount: "$450", percent: 13, color: "bg-yellow-500" },
-                          { name: "Shopping", amount: "$380", percent: 11, color: "bg-purple-500" },
-                          { name: "Others", amount: "$770", percent: 22, color: "bg-gray-500" }
+                          { name: "Shopping", amount: "$380", percent: 11, color: "bg-purple-500" }
                         ].map((item) => (
                           <div key={item.name} className="flex items-center gap-3">
                             <div className={`h-3 w-3 rounded-full ${item.color}`} />
                             <div className="flex-1">
-                              <div className="flex justify-between text-sm">
+                              <div className="flex justify-between">
                                 <span>{item.name}</span>
                                 <span className="text-muted-foreground">{item.amount}</span>
                               </div>
-                              <div className="mt-1 h-2 w-full rounded-full bg-muted">
+                              <div className="mt-1.5 h-2 w-full rounded-full bg-muted">
                                 <div
                                   className={`h-2 rounded-full ${item.color}`}
                                   style={{ width: `${item.percent}%` }}
@@ -225,20 +226,19 @@ export function LandingPage() {
 
                   <Card>
                     <CardContent className="p-6">
-                      <div className="mb-4 font-semibold">Recent Transactions</div>
+                      <div className="mb-4 text-lg font-semibold">Recent Transactions</div>
                       <div className="space-y-4">
                         {[
                           { name: "Grocery Store", category: "Food & Dining", amount: "-$85.50", date: "Today" },
                           { name: "Salary Deposit", category: "Income", amount: "+$3,200.00", date: "Jan 15" },
-                          { name: "Electric Bill", category: "Utilities", amount: "-$124.00", date: "Jan 14" },
-                          { name: "Coffee Shop", category: "Food & Dining", amount: "-$6.50", date: "Jan 14" }
+                          { name: "Electric Bill", category: "Utilities", amount: "-$124.00", date: "Jan 14" }
                         ].map((tx, i) => (
                           <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                             <div>
                               <div className="font-medium">{tx.name}</div>
                               <div className="text-sm text-muted-foreground">{tx.category} • {tx.date}</div>
                             </div>
-                            <div className={tx.amount.startsWith("+") ? "font-semibold text-green-600 dark:text-green-400" : "font-semibold"}>
+                            <div className={tx.amount.startsWith("+") ? "text-lg font-semibold text-green-600 dark:text-green-400" : "text-lg font-semibold"}>
                               {tx.amount}
                             </div>
                           </div>
@@ -249,9 +249,6 @@ export function LandingPage() {
                 </div>
               </div>
             </div>
-
-            {/* Decorative elements */}
-            <div className="absolute -bottom-4 -left-4 -right-4 h-8 rounded-b-xl bg-gradient-to-t from-background to-transparent" />
           </div>
         </div>
       </section>
@@ -261,10 +258,10 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Everything You Need to Manage Your Finances
+              What You Can Do Today
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Powerful features to help you understand and control your money
+              Features already available in Finora
             </p>
           </div>
 
@@ -306,12 +303,12 @@ export function LandingPage() {
               {
                 step: "2",
                 title: "Upload Statements",
-                description: "Upload your bank PDF statements and let AI extract transactions automatically."
+                description: "Upload your bank PDF statements and let AI extract transactions."
               },
               {
                 step: "3",
                 title: "Track & Analyze",
-                description: "View insights, track spending, and take control of your financial future."
+                description: "View insights, track spending, and export reports."
               }
             ].map((item) => (
               <div key={item.step} className="relative text-center">
@@ -331,10 +328,10 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              More Features Coming Soon
+              Coming Soon
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              We&apos;re constantly improving Finora to help you better manage your finances
+              Exciting features on our roadmap
             </p>
           </div>
 
@@ -355,46 +352,43 @@ export function LandingPage() {
       {/* CTA Section */}
       <section className="py-20 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-20 text-center sm:px-16">
+          <div className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 py-20 text-center sm:px-16">
             <div className="relative z-10">
-              <h2 className="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                 Ready to Take Control?
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-lg text-primary-foreground/80">
+              <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
                 Join Finora today and start your journey to financial clarity. It&apos;s free to get started.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link href="/signup">
-                  <Button size="lg" variant="secondary" className="gap-2 text-base">
+                  <Button size="lg" className="gap-2 text-base">
                     Create Free Account
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </div>
             </div>
-            <div className="absolute inset-0 -z-0 opacity-30">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+      <footer className="border-t">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Image src="/icon.png" alt="Finora" width={32} height={32} className="rounded-lg" />
+              <Image src="/icon.png" alt="Finora" width={28} height={28} className="rounded-lg" />
               <span className="font-semibold">Finora</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Personal finance tracking made simple
+              © {new Date().getFullYear()} Finora. Personal finance tracking made simple.
             </p>
-            <div className="flex gap-6">
-              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
+            <div className="flex items-center gap-6">
+              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Sign In
               </Link>
-              <Link href="/signup" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link href="/signup" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Sign Up
               </Link>
             </div>

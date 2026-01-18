@@ -1,6 +1,6 @@
 /**
  * Signup Page
- * 
+ *
  * User registration with email and password.
  */
 
@@ -12,6 +12,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { signup, type SignupData } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
+import { Upload, BarChart3, FileText, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -28,13 +29,11 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
 
-    // Validate password match
     if (formData.password !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
 
-    // Validate password length
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters')
       return
@@ -44,7 +43,6 @@ export default function SignupPage() {
 
     try {
       await signup(formData)
-      // Redirect to dashboard on success
       router.push('/dashboard')
     } catch (err) {
       if (err instanceof ApiError) {
@@ -63,7 +61,7 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    
+
     if (name === 'confirmPassword') {
       setConfirmPassword(value)
     } else {
@@ -75,38 +73,109 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12] px-4 overflow-hidden">
-      <div className="max-w-md w-full space-y-6">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Image src="/icon.png" alt="Finora" width={32} height={32} className="w-8 h-8 rounded-lg" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Finora
-          </h1>
-          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-            Smart Modern Finance Tracker
-          </p>
-        </div>
+    <div className="min-h-screen flex bg-background">
+      {/* Left Side - Branding & Features (Hidden on mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-background to-primary/5 relative overflow-hidden">
+        <div className="absolute top-1/3 left-1/3 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/3 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="bg-white dark:bg-[#0F0F12] border border-gray-200 dark:border-[#1F1F23] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Create Account
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
+          <Link href="/" className="flex items-center gap-3 mb-8 hover:opacity-80 transition-opacity">
+            <Image src="/icon.png" alt="Finora" width={48} height={48} className="rounded-xl" />
+            <span className="text-3xl font-bold text-foreground">Finora</span>
+          </Link>
+
+          <h2 className="text-4xl xl:text-5xl font-bold text-foreground mb-4">
+            Start your financial journey
           </h2>
+          <p className="text-lg text-muted-foreground mb-12">
+            Join thousands of users who track their finances smarter with Finora.
+          </p>
+
+          <div className="space-y-5">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">What you&apos;ll get</h3>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <Upload className="w-5 h-5 text-green-500" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">AI-Powered PDF Import</p>
+                <p className="text-sm text-muted-foreground">Upload statements, we extract transactions</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Smart Analytics</p>
+                <p className="text-sm text-muted-foreground">Category breakdowns & spending trends</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Export Reports</p>
+                <p className="text-sm text-muted-foreground">PDF, Excel, and CSV exports</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 pt-8 border-t border-border/50">
+            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <span>Free to use</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <span>No credit card</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <span>Secure</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Signup Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden text-center mb-8">
+            <Link href="/" className="inline-flex flex-col items-center gap-2 hover:opacity-80 transition-opacity">
+              <Image src="/icon.png" alt="Finora" width={48} height={48} className="rounded-xl" />
+              <h1 className="text-2xl font-bold text-foreground">Finora</h1>
+            </Link>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-foreground">Create your account</h2>
+            <p className="text-muted-foreground mt-2">
+              Already have an account?{' '}
+              <Link href="/login" className="text-primary hover:text-primary/80 font-medium">
+                Sign in
+              </Link>
+            </p>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="p-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800">
                 {error}
               </div>
             )}
 
             <div>
-              <label 
-                htmlFor="full_name" 
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Full Name (Optional)
+              <label htmlFor="full_name" className="block text-sm font-medium text-foreground mb-2">
+                Full name <span className="text-muted-foreground font-normal">(optional)</span>
               </label>
               <input
                 id="full_name"
@@ -116,17 +185,14 @@ export default function SignupPage() {
                 value={formData.full_name}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#1F1F23] rounded-lg bg-white dark:bg-[#0F0F12] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="John Doe"
               />
             </div>
 
             <div>
-              <label 
-                htmlFor="email" 
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Email
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                Email address
               </label>
               <input
                 id="email"
@@ -137,16 +203,13 @@ export default function SignupPage() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#1F1F23] rounded-lg bg-white dark:bg-[#0F0F12] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label 
-                htmlFor="password" 
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
                 Password
               </label>
               <input
@@ -158,20 +221,17 @@ export default function SignupPage() {
                 value={formData.password}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#1F1F23] rounded-lg bg-white dark:bg-[#0F0F12] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="••••••••"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1.5 text-xs text-muted-foreground">
                 At least 8 characters
               </p>
             </div>
 
             <div>
-              <label 
-                htmlFor="confirmPassword" 
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Confirm Password
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
+                Confirm password
               </label>
               <input
                 id="confirmPassword"
@@ -182,7 +242,7 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#1F1F23] rounded-lg bg-white dark:bg-[#0F0F12] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -190,21 +250,31 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                <>
+                  Create account
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              Already have an account?{' '}
-              <Link 
-                href="/login" 
-                className="text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                Sign in
-              </Link>
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              By creating an account, you agree to our terms of service and privacy policy.
             </p>
           </form>
+
+          <div className="mt-8 text-center">
+            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              ← Back to home
+            </Link>
+          </div>
         </div>
       </div>
     </div>

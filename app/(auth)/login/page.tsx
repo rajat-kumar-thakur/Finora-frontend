@@ -1,6 +1,6 @@
 /**
  * Login Page
- * 
+ *
  * User authentication with email and password.
  */
 
@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { login, type LoginData } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
 import { isAuthenticated } from '@/lib/auth'
+import { TrendingUp, PieChart, Shield, ArrowRight } from 'lucide-react'
 
 function LoginForm() {
   const router = useRouter()
@@ -38,7 +39,6 @@ function LoginForm() {
 
     try {
       await login(formData)
-      // Redirect to the intended page or dashboard
       const redirectTo = searchParams.get('redirect') || '/dashboard'
       window.location.href = redirectTo
     } catch (err) {
@@ -66,38 +66,90 @@ function LoginForm() {
   }
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12] px-4 overflow-hidden">
-      <div className="max-w-md w-full space-y-6">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Image src="/icon.png" alt="Finora" width={32} height={32} className="w-8 h-8 rounded-lg" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Finora
-          </h1>
-          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-            Smart Modern Finance Tracker
-          </p>
-        </div>
+    <div className="min-h-screen flex bg-background">
+      {/* Left Side - Branding & Features (Hidden on mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-background to-primary/5 relative overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="bg-white dark:bg-[#0F0F12] border border-gray-200 dark:border-[#1F1F23] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Sign In
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
+          <Link href="/" className="flex items-center gap-3 mb-8 hover:opacity-80 transition-opacity">
+            <Image src="/icon.png" alt="Finora" width={48} height={48} className="rounded-xl" />
+            <span className="text-3xl font-bold text-foreground">Finora</span>
+          </Link>
+
+          <h2 className="text-4xl xl:text-5xl font-bold text-foreground mb-4">
+            Welcome back
           </h2>
+          <p className="text-lg text-muted-foreground mb-12">
+            Sign in to continue managing your finances and tracking your financial goals.
+          </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Track Net Worth</h3>
+                <p className="text-sm text-muted-foreground">Monitor your total balance across all accounts in real-time</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <PieChart className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Smart Insights</h3>
+                <p className="text-sm text-muted-foreground">Get detailed breakdowns of your spending by category</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Shield className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Secure & Private</h3>
+                <p className="text-sm text-muted-foreground">Your financial data is encrypted and never shared</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden text-center mb-8">
+            <Link href="/" className="inline-flex flex-col items-center gap-2 hover:opacity-80 transition-opacity">
+              <Image src="/icon.png" alt="Finora" width={48} height={48} className="rounded-xl" />
+              <h1 className="text-2xl font-bold text-foreground">Finora</h1>
+            </Link>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-foreground">Sign in to your account</h2>
+            <p className="text-muted-foreground mt-2">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="text-primary hover:text-primary/80 font-medium">
+                Sign up for free
+              </Link>
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="p-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800">
                 {error}
               </div>
             )}
 
             <div>
-              <label 
-                htmlFor="email" 
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Email
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                Email address
               </label>
               <input
                 id="email"
@@ -108,16 +160,13 @@ function LoginForm() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#1F1F23] rounded-lg bg-white dark:bg-[#0F0F12] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label 
-                htmlFor="password" 
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
                 Password
               </label>
               <input
@@ -129,7 +178,7 @@ function LoginForm() {
                 value={formData.password}
                 onChange={handleChange}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-[#1F1F23] rounded-lg bg-white dark:bg-[#0F0F12] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -137,31 +186,38 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
-
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              Don&apos;t have an account?{' '}
-              <Link 
-                href="/signup" 
-                className="text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                Sign up
-              </Link>
-            </p>
           </form>
+
+          <div className="mt-8 text-center">
+            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              ← Back to home
+            </Link>
+          </div>
         </div>
       </div>
     </div>
   )
 }
+
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0F0F12] overflow-hidden">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <LoginForm />

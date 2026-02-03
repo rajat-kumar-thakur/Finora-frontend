@@ -20,8 +20,7 @@ export function NetWorthTrend({ refreshTrigger = 0 }: NetWorthTrendProps) {
         const data = await netWorthApi.getHistory()
         // Sort by date ascending for chart
         setHistory((data || []).reverse())
-      } catch (error) {
-        console.error('Failed to fetch net worth history:', error)
+      } catch {
         setHistory([])
       } finally {
         setLoading(false)

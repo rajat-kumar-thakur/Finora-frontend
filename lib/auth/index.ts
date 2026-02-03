@@ -31,10 +31,9 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     if (!isAuthenticated()) {
       return null
     }
-    
+
     return await getCurrentUserProfile()
-  } catch (error) {
-    console.error('Failed to get current user:', error)
+  } catch {
     return null
   }
 }

@@ -72,8 +72,8 @@ export function NotificationCenter() {
     try {
       const data = await notificationApi.getUnreadCount()
       setUnreadCount(data.unread_count)
-    } catch (err) {
-      console.error('Failed to fetch unread count:', err)
+    } catch {
+      // Silently fail
     }
   }
 
@@ -83,8 +83,8 @@ export function NotificationCenter() {
       const data = await notificationApi.list({ limit: 20 })
       setNotifications(data.notifications)
       setUnreadCount(data.unread_count)
-    } catch (err) {
-      console.error('Failed to fetch notifications:', err)
+    } catch {
+      // Silently fail
     } finally {
       setLoading(false)
     }
@@ -104,8 +104,8 @@ export function NotificationCenter() {
         prev.map(n => (n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n))
       )
       setUnreadCount(prev => Math.max(0, prev - 1))
-    } catch (err) {
-      console.error('Failed to mark as read:', err)
+    } catch {
+      // Silently fail
     }
   }
 
@@ -114,8 +114,8 @@ export function NotificationCenter() {
       await notificationApi.markAllAsRead()
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() })))
       setUnreadCount(0)
-    } catch (err) {
-      console.error('Failed to mark all as read:', err)
+    } catch {
+      // Silently fail
     }
   }
 

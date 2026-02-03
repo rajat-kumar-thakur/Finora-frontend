@@ -111,8 +111,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     try {
       const data = await categoryApi.list()
       setCategories(data)
-    } catch (err) {
-      console.error('Failed to load categories:', err)
+    } catch {
+      // Silently fail - categories will show empty
     }
   }, [])
 

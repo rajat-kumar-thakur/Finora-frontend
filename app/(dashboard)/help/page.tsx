@@ -401,14 +401,14 @@ export default function HelpPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href="mailto:support@finora.app"
+              href="mailto:work.rajatkt@gmail.com?subject=Finora%20Support%20Request&body=Hi%20Finora%20Support%2C%0A%0A---%20Please%20fill%20out%20the%20template%20below%20---%0A%0AIssue%20Type%3A%20%5BBug%20%2F%20Feature%20Request%20%2F%20Question%5D%0A%0ADescription%3A%0A%5BDescribe%20your%20issue%20or%20question%20in%20detail%5D%0A%0ASteps%20to%20Reproduce%20(if%20applicable)%3A%0A1.%20%0A2.%20%0A3.%20%0A%0AExpected%20Behavior%3A%0A%5BWhat%20did%20you%20expect%20to%20happen%3F%5D%0A%0AActual%20Behavior%3A%0A%5BWhat%20actually%20happened%3F%5D%0A%0ABrowser%2FDevice%3A%0A%5Be.g.%2C%20Chrome%20on%20Windows%5D%0A%0A---%20End%20of%20template%20---%0A%0AThank%20you!"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
             >
               <Mail className="h-4 w-4" />
               Contact Support
             </a>
             <a
-              href="https://github.com/anthropics/claude-code/issues"
+              href="https://github.com/rajat-kumar-thakur/Finora-frontend/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border bg-card text-foreground font-medium hover:bg-accent transition-colors"

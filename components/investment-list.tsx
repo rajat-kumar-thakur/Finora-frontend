@@ -24,10 +24,8 @@ export function InvestmentList({ onUpdate }: InvestmentListProps) {
   const fetchInvestments = async () => {
     try {
       const data = await investmentApi.getAll()
-      console.log('[InvestmentList] Fetched investments:', data)
       setInvestments(data || [])
-    } catch (error) {
-      console.error('Failed to fetch investments:', error)
+    } catch {
       setInvestments([])
     } finally {
       setLoading(false)
@@ -44,14 +42,13 @@ export function InvestmentList({ onUpdate }: InvestmentListProps) {
   }
 
   const handleDelete = async (id: string) => {
-    console.log('[InvestmentList] Deleting investment with ID:', id)
     if (confirm('Are you sure you want to delete this investment?')) {
       try {
         await investmentApi.delete(id)
         fetchInvestments()
         onUpdate()
-      } catch (error) {
-        console.error('Failed to delete investment:', error)
+      } catch {
+        // Silently fail - UI will remain unchanged
       }
     }
   }

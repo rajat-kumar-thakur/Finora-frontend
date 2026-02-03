@@ -79,8 +79,7 @@ export default function AdminWaitlistPage() {
 
       const statsResponse = await getUserStats()
       setStats(statsResponse)
-    } catch (err) {
-      console.error('Failed to load admin data:', err)
+    } catch {
       setError('Failed to load data. Please try again.')
     } finally {
       setLoading(false)
@@ -114,8 +113,7 @@ export default function AdminWaitlistPage() {
         pending: prev.pending - 1,
         approved: prev.approved + 1,
       }))
-    } catch (err) {
-      console.error('Failed to approve user:', err)
+    } catch {
       setError('Failed to approve user. Please try again.')
     } finally {
       setActionLoading(null)
@@ -135,8 +133,7 @@ export default function AdminWaitlistPage() {
         pending: prev.pending - 1,
         rejected: prev.rejected + 1,
       }))
-    } catch (err) {
-      console.error('Failed to reject user:', err)
+    } catch {
       setError('Failed to reject user. Please try again.')
     } finally {
       setActionLoading(null)
@@ -156,8 +153,7 @@ export default function AdminWaitlistPage() {
         active: currentlyActive ? prev.active - 1 : prev.active + 1,
         disabled: currentlyActive ? prev.disabled + 1 : prev.disabled - 1,
       }))
-    } catch (err) {
-      console.error('Failed to toggle user status:', err)
+    } catch {
       setError('Failed to update user status. Please try again.')
     } finally {
       setActionLoading(null)

@@ -21,8 +21,8 @@ export function PortfolioSummaryView({ refreshTrigger }: PortfolioSummaryProps) 
       try {
         const data = await investmentApi.getSummary()
         setSummary(data)
-      } catch (error) {
-        console.error('Failed to fetch portfolio summary:', error)
+      } catch {
+        // Silently fail - summary will show as null
       } finally {
         setLoading(false)
       }

@@ -55,8 +55,8 @@ export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateMo
     try {
       const data = await categoryApi.list()
       setCategories(data)
-    } catch (err) {
-      console.error('Failed to load categories:', err)
+    } catch {
+      // Silently fail - categories will show empty
     }
   }
 
@@ -68,31 +68,24 @@ export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateMo
       } else {
         setLatestBalance(0)
       }
-    } catch (err) {
-      console.error('Failed to load latest balance:', err)
+    } catch {
+      // Silently fail - balance will default to 0
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('[TransactionCreate] Form submitted')
-    console.log('[TransactionCreate] Form data:', formData)
-    
     setSaving(true)
     setError(null)
 
     try {
-      console.log('[TransactionCreate] Calling API...')
-      const result = await transactionApi.create(formData)
-      console.log('[TransactionCreate] API success:', result)
+      await transactionApi.create(formData)
       onSaved()
       onClose()
     } catch (err) {
-      console.error('[TransactionCreate] API error:', err)
       setError(err instanceof Error ? err.message : 'Failed to create transaction')
     } finally {
       setSaving(false)
-      console.log('[TransactionCreate] Form submission complete')
     }
   }
 

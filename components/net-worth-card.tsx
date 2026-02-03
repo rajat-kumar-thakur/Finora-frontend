@@ -45,8 +45,8 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
     try {
       const data = await investmentApi.getSummary()
       setPortfolio(data)
-    } catch (err) {
-      console.error('Failed to load portfolio:', err)
+    } catch {
+      // Silently fail - portfolio will show as null
     }
   }
 

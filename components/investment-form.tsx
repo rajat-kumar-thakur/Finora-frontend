@@ -58,19 +58,15 @@ export function InvestmentForm({ open, onOpenChange, onSuccess, investment }: In
     setLoading(true)
     setError(null)
     
-    console.log('Submitting investment data:', formData)
-    
     try {
       if (investment) {
         await investmentApi.update(investment.id, formData)
       } else {
-        const result = await investmentApi.create(formData)
-        console.log('Investment created:', result)
+        await investmentApi.create(formData)
       }
       onSuccess()
       onOpenChange(false)
     } catch (error: unknown) {
-      console.error('Failed to save investment:', error)
       const errorMessage = (error as { data?: { detail?: string }; message?: string })?.data?.detail || (error as { message?: string })?.message || 'Failed to save investment'
       setError(errorMessage)
     } finally {

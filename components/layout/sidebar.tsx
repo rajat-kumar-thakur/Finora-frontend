@@ -240,7 +240,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
               <NavItem href="/settings" icon={Settings}>
                 Settings
               </NavItem>
-              <NavItem href="/help" icon={HelpCircle} disabled>
+              <NavItem href="/help" icon={HelpCircle}>
                 Help
               </NavItem>
 

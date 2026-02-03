@@ -160,6 +160,22 @@
   }
 }
 
+/* Grid pattern for hero backgrounds */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Line clamp utility for text truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* ===========================================
    CONSISTENT UI DESIGN SYSTEM
    =========================================== */

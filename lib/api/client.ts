@@ -139,7 +139,7 @@ class ApiClient {
       const { refreshAccessToken } = await import('./auth')
       await refreshAccessToken()
       return true
-    } catch (error) {
+    } catch {
       // Token refresh failed - silently return false
       return false
     }

@@ -33,7 +33,16 @@ export interface UserProfile {
   full_name: string | null
   is_active: boolean
   created_at: string
+  last_login: string | null
   role: string
+  status: 'pending' | 'approved' | 'rejected'
+  is_admin: boolean
+}
+
+export interface SignupResponse {
+  message: string
+  status: 'pending' | 'approved'
+  user_id: string
 }
 
 // ============================================================================
@@ -93,13 +102,13 @@ export function clearTokens(): void {
 
 /**
  * Register a new user
+ *
+ * New users are placed on a waitlist and must be approved by an admin.
+ * Returns a SignupResponse with status instead of tokens.
  */
-export async function signup(data: SignupData): Promise<TokenResponse> {
-  const response = await api.post<TokenResponse>('/api/v1/auth/signup', data)
-  
-  // Store tokens
-  storeTokens(response.access_token, response.refresh_token)
-  
+export async function signup(data: SignupData): Promise<SignupResponse> {
+  const response = await api.post<SignupResponse>('/api/v1/auth/signup', data)
+  // No tokens are returned - user must wait for approval
   return response
 }
 

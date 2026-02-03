@@ -46,7 +46,15 @@ function LoginForm() {
         if (err.status === 401) {
           setError('Invalid email or password')
         } else if (err.status === 403) {
-          setError('Your account has been disabled')
+          // Check the error detail for specific messages
+          const detail = (err.data as { detail?: string })?.detail || ''
+          if (detail.includes('pending')) {
+            setError('Your account is pending approval. Please wait for admin approval.')
+          } else if (detail.includes('rejected')) {
+            setError('Your account request was rejected.')
+          } else {
+            setError('Your account has been disabled')
+          }
         } else {
           setError('Login failed. Please try again.')
         }

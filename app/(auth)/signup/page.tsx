@@ -12,7 +12,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { signup, type SignupData } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
-import { Upload, BarChart3, FileText, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Upload, BarChart3, FileText, ArrowRight, CheckCircle2, Clock } from 'lucide-react'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -24,6 +24,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [signupComplete, setSignupComplete] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,8 +43,15 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-      await signup(formData)
-      router.push('/dashboard')
+      const response = await signup(formData)
+
+      if (response.status === 'pending') {
+        // Show waitlist message
+        setSignupComplete(true)
+      } else {
+        // Auto-approved (admin), redirect to login
+        router.push('/login')
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 400) {
@@ -70,6 +78,33 @@ export default function SignupPage() {
         [name]: value
       }))
     }
+  }
+
+  // Show waitlist confirmation if signup is complete
+  if (signupComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md text-center">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Clock className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground mb-4">
+            You&apos;re on the waitlist!
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            Thanks for signing up! Your account is pending approval.
+            You&apos;ll be able to log in once an admin approves your account.
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium"
+          >
+            Return to login
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -23,6 +23,7 @@ import {
   Repeat,
   ChevronLeft,
   ChevronRight,
+  Shield,
 } from "lucide-react"
 
 import Link from "next/link"
@@ -31,6 +32,7 @@ import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { clearTokens } from "@/lib/api/auth"
+import { useUser } from "@/lib/auth"
 
 interface SidebarProps {
   isMobileMenuOpen?: boolean
@@ -42,6 +44,8 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  const { user } = useUser()
+  const isAdmin = user?.is_admin ?? false
 
   // Use external state if provided, otherwise use internal state
   const isMobileMenuOpen = externalOpen !== undefined ? externalOpen : internalOpen
@@ -116,9 +120,9 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
           isCollapsed ? "lg:w-16" : "w-64"
         )}
       >
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col min-h-0">
           {/* Logo/Brand */}
-          <div className="h-16 border-b border-gray-200 dark:border-[#1F1F23] flex items-center justify-center relative px-3">
+          <div className="h-16 flex-shrink-0 border-b border-gray-200 dark:border-[#1F1F23] flex items-center justify-center relative px-3">
             <Link href="/dashboard" className={cn("flex items-center hover:opacity-80 transition-opacity", isCollapsed ? "flex-col gap-0.5" : "gap-3 mr-auto")}>
               <Image src="/icon.png" alt="Finora" width={32} height={32} className="w-8 h-8 rounded-lg" />
               <span className={cn("font-semibold text-gray-900 dark:text-white", isCollapsed ? "text-[9px] leading-none" : "text-lg")}>
@@ -149,8 +153,8 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
             )}
           </div>
 
-          {/* Navigation */}
-          <div className="flex-1 py-4 px-4">
+          {/* Navigation - Scrollable */}
+          <div className="flex-1 overflow-y-auto py-4 px-4">
             <div className="space-y-6">
               {/* Main Navigation */}
               <div>
@@ -211,11 +215,27 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
                   </NavItem>
                 </div>
               </div>
+
+              {/* Admin Section - Only visible to admins */}
+              {isAdmin && (
+                <div>
+                  {!isCollapsed && (
+                    <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Admin
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <NavItem href="/admin/waitlist" icon={Shield}>
+                      Waitlist
+                    </NavItem>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Settings Footer */}
-          <div className="px-4 py-4 border-t border-gray-200 dark:border-[#1F1F23]">
+          <div className="flex-shrink-0 px-4 py-4 border-t border-gray-200 dark:border-[#1F1F23]">
             <div className="space-y-1">
               <NavItem href="/settings" icon={Settings}>
                 Settings

@@ -54,6 +54,37 @@ export interface PortfolioSummary {
   returns_by_type: Record<string, TypeReturns>
 }
 
+export interface PortfolioValueEntry {
+  id: string
+  date: string
+  total_value: number
+  total_cost: number
+  total_return: number
+  return_percentage: number
+  value_by_type?: Record<string, number>
+  user_id: string
+  created_at: string
+}
+
+export interface PortfolioHistoryPoint {
+  date: string
+  value: number
+  cost?: number
+  return: number
+  return_percentage: number
+}
+
+export interface PortfolioPerformance {
+  current_value: number
+  start_value: number
+  absolute_change: number
+  percentage_change: number
+  is_positive: boolean
+  history: PortfolioHistoryPoint[]
+}
+
+export type TimePeriod = '1D' | '1W' | '1M' | '3M' | '1Y' | 'ALL'
+
 export const investmentApi = {
   getAll: async () => {
     return await apiClient.get<Investment[]>('/api/v1/investments/')
@@ -77,5 +108,13 @@ export const investmentApi = {
 
   delete: async (id: string) => {
     await apiClient.delete(`/api/v1/investments/${id}`)
+  },
+
+  getHistory: async (period: TimePeriod = '1M') => {
+    return await apiClient.get<PortfolioPerformance>(`/api/v1/investments/history?period=${period}`)
+  },
+
+  createSnapshot: async () => {
+    return await apiClient.post<PortfolioValueEntry>('/api/v1/investments/snapshot')
   }
 }

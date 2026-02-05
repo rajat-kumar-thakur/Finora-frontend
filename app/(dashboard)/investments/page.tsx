@@ -1,6 +1,6 @@
 /**
  * Investments Page
- * 
+ *
  * Manage investments, track portfolio performance and net worth.
  */
 
@@ -9,6 +9,7 @@
 import { useState } from 'react'
 import { InvestmentList } from '@/components/investment-list'
 import { PortfolioSummaryView } from '@/components/portfolio-summary'
+import { PortfolioValueChart } from '@/components/portfolio-value-chart'
 import { NetWorthTrend } from '@/components/net-worth-trend'
 
 export default function InvestmentsPage() {
@@ -28,6 +29,9 @@ export default function InvestmentsPage() {
 
       {/* Portfolio Summary */}
       <PortfolioSummaryView refreshTrigger={refreshTrigger} />
+
+      {/* Portfolio Value Chart */}
+      <PortfolioValueChart refreshTrigger={refreshTrigger} />
 
       {/* Investment List */}
       <InvestmentList onUpdate={handleUpdate} />

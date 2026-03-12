@@ -121,11 +121,15 @@ export function FixedDepositForm({ open, onOpenChange, onSuccess, deposit }: Fix
     try {
       if (deposit) {
         await fixedDepositApi.update(deposit.id, {
+          interest_rate: rate || undefined,
           status: editStatus,
           notes: formData.notes,
         })
       } else {
-        await fixedDepositApi.create(formData)
+        await fixedDepositApi.create({
+          ...formData,
+          interest_rate: rate || undefined,
+        })
       }
       onSuccess()
       onOpenChange(false)
@@ -247,10 +251,15 @@ export function FixedDepositForm({ open, onOpenChange, onSuccess, deposit }: Fix
               />
             </div>
             <div className="space-y-2">
-              <Label>Interest Rate</Label>
-              <div className="px-3 py-2 rounded-md border border-border bg-accent/30 text-sm font-medium">
-                {rate !== null ? `${rate}% p.a.` : '—'}
-              </div>
+              <Label htmlFor="interest_rate">Interest Rate (% p.a.)</Label>
+              <Input
+                id="interest_rate"
+                type="number"
+                step="0.01"
+                placeholder="e.g., 6.60"
+                value={rate ?? ''}
+                onChange={(e) => setRate(parseFloat(e.target.value) || null)}
+              />
             </div>
           </div>
 

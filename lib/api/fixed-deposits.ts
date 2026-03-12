@@ -28,10 +28,12 @@ export interface FixedDepositCreate {
   principal_amount: number
   tenure_days: number
   start_date: string
+  interest_rate?: number
   notes?: string
 }
 
 export interface FixedDepositUpdate {
+  interest_rate?: number
   status?: 'Active' | 'Matured' | 'Withdrawn'
   notes?: string
 }

@@ -6,7 +6,7 @@
  * Displays paginated list of transactions with inline editing.
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { transactionApi, categoryApi, type Transaction, type TransactionFilter, type Category } from '@/lib/api'
 
 interface TransactionListProps {
@@ -60,7 +60,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     setError(null)
 
     try {
-      const currentPage = pageOverride || filters?.page || pagination.page || 1
+      const currentPage = pageOverride ?? pagination.page
       
       // Build filter object including column filters
       const filterParams: Record<string, string | number | undefined> = {
@@ -105,7 +105,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     } finally {
       setLoading(false)
     }
-  }, [filters, pagination.page, columnFilters])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, columnFilters])
 
   const loadCategories = useCallback(async () => {
     try {
@@ -116,11 +117,17 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     }
   }, [])
 
+  // Keep a ref to the latest loadTransactions to avoid effect re-triggers on page changes
+  const loadTransactionsRef = useRef(loadTransactions)
+  useEffect(() => {
+    loadTransactionsRef.current = loadTransactions
+  }, [loadTransactions])
+
   // Debounced effect for column filters (wait 500ms after user stops typing)
   useEffect(() => {
     setFilterDebouncing(true)
     const debounceTimer = setTimeout(() => {
-      loadTransactions()
+      loadTransactionsRef.current()
       setFilterDebouncing(false)
     }, 500) // 500ms delay
 
@@ -128,12 +135,12 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       clearTimeout(debounceTimer)
       setFilterDebouncing(false)
     }
-  }, [columnFilters, loadTransactions])
+  }, [columnFilters])
 
-  // Immediate effect for other filters (without debounce)
+  // Immediate effect for initial load and refresh triggers
   useEffect(() => {
-    loadTransactions()
-  }, [loadTransactions, refreshTrigger])
+    loadTransactionsRef.current()
+  }, [refreshTrigger])
 
   useEffect(() => {
     loadCategories()

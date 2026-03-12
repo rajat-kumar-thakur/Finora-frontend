@@ -42,7 +42,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* Transaction List */}
-      <TransactionList filters={{ page: 1, page_size: 50 }} refreshTrigger={refresh} />
+      <TransactionList filters={{ page_size: 50 }} refreshTrigger={refresh} />
 
       {showCreate && (
         <TransactionCreateModal

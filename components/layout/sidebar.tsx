@@ -24,6 +24,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
+  Landmark,
 } from "lucide-react"
 
 import Link from "next/link"
@@ -189,6 +190,9 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
                 <div className="space-y-1">
                   <NavItem href="/investments" icon={TrendingUp}>
                     Portfolio
+                  </NavItem>
+                  <NavItem href="/fixed-deposits" icon={Landmark}>
+                    Fixed Deposits
                   </NavItem>
                 </div>
               </div>

@@ -173,13 +173,10 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
               <div>
                 <div className="text-sm font-medium text-foreground">Fixed Deposits</div>
                 <div className="text-xs text-muted-foreground">
-                  {fdSummary && fdSummary.total_invested > 0 ? (
-                    <span className="text-green-500">
-                      +{formatCurrency(fdSummary.total_interest_earned)} interest
-                    </span>
-                  ) : (
-                    'No deposits yet'
-                  )}
+                  {fdSummary && fdSummary.total_invested > 0
+                    ? 'Amount invested'
+                    : 'No deposits yet'
+                  }
                 </div>
               </div>
             </div>

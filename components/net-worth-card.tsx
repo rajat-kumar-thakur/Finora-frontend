@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react'
 import { summaryApi, type NetWorth } from '@/lib/api'
 import { investmentApi, type PortfolioSummary } from '@/lib/api/investments'
+import { fixedDepositApi, type FixedDepositSummary } from '@/lib/api/fixed-deposits'
 import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -19,12 +20,14 @@ interface NetWorthCardProps {
 export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
   const [netWorth, setNetWorth] = useState<NetWorth | null>(null)
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null)
+  const [fdSummary, setFdSummary] = useState<FixedDepositSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadNetWorth()
     loadPortfolio()
+    loadFdSummary()
   }, [refreshTrigger])
 
   const loadNetWorth = async () => {
@@ -47,6 +50,15 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
       setPortfolio(data)
     } catch {
       // Silently fail - portfolio will show as null
+    }
+  }
+
+  const loadFdSummary = async () => {
+    try {
+      const data = await fixedDepositApi.getSummary()
+      setFdSummary(data)
+    } catch {
+      // Silently fail
     }
   }
 
@@ -81,10 +93,10 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
       <div className="mb-3 sm:mb-4">
         <div className="text-xs text-muted-foreground mb-1">Total Balance</div>
         <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-          {formatCurrency((netWorth?.bank_balance || 0) + (portfolio?.total_value || 0))}
+          {formatCurrency((netWorth?.bank_balance || 0) + (portfolio?.total_value || 0) + (fdSummary?.total_invested || 0))}
         </div>
         <div className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-          Bank: {formatCurrency(netWorth?.bank_balance || 0)} + Investments: {formatCurrency(portfolio?.total_value || 0)}
+          Bank: {formatCurrency(netWorth?.bank_balance || 0)} + Investments: {formatCurrency(portfolio?.total_value || 0)}{(fdSummary?.total_invested || 0) > 0 ? ` + FD: ${formatCurrency(fdSummary?.total_invested || 0)}` : ''}
         </div>
       </div>
 
@@ -139,6 +151,41 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
             <div className="text-sm font-semibold text-foreground">
               {portfolio && portfolio.total_value > 0 
                 ? formatCurrency(portfolio.total_value)
+                : '—'
+              }
+            </div>
+          </div>
+        </Link>
+
+        {/* Fixed Deposits */}
+        <Link href="/fixed-deposits" className="block">
+          <div className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+            fdSummary && fdSummary.total_invested > 0
+              ? 'bg-accent/50 border-border hover:bg-accent'
+              : 'bg-accent/30 border-dashed border-border opacity-60'
+          }`}>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-foreground">Fixed Deposits</div>
+                <div className="text-xs text-muted-foreground">
+                  {fdSummary && fdSummary.total_invested > 0 ? (
+                    <span className="text-green-500">
+                      +{formatCurrency(fdSummary.total_interest_earned)} interest
+                    </span>
+                  ) : (
+                    'No deposits yet'
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="text-sm font-semibold text-foreground">
+              {fdSummary && fdSummary.total_invested > 0
+                ? formatCurrency(fdSummary.total_invested)
                 : '—'
               }
             </div>

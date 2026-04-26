@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { summaryApi, type MonthlySummary } from '@/lib/api'
-import { MonthlyCategoryNet } from './monthly-category-net'
+import { MonthComparison } from './month-comparison'
 
 interface MonthlySummaryCardProps {
   refreshTrigger?: number
@@ -144,7 +144,13 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
         </div>
       )}
 
-      <MonthlyCategoryNet year={selectedYear} month={selectedMonth} />
+      {summary && (
+        <MonthComparison
+          year={selectedYear}
+          month={selectedMonth}
+          currentSummary={summary}
+        />
+      )}
     </div>
   )
 }

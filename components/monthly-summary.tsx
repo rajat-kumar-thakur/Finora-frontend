@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { summaryApi, type MonthlySummary } from '@/lib/api'
+import { MonthlyCategoryNet } from './monthly-category-net'
 
 interface MonthlySummaryCardProps {
   refreshTrigger?: number
@@ -142,6 +143,8 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
           </div>
         </div>
       )}
+
+      <MonthlyCategoryNet year={selectedYear} month={selectedMonth} />
     </div>
   )
 }

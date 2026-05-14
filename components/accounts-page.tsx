@@ -15,6 +15,7 @@ import {
 } from '@/lib/api/bank-accounts'
 import { INDIAN_BANKS } from '@/lib/constants/indian-banks'
 import { formatCurrency } from '@/lib/utils'
+import { TransferModal } from '@/components/transfer-modal'
 
 type ModalMode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; account: BankAccount }
 
@@ -23,6 +24,7 @@ export function AccountsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [modal, setModal] = useState<ModalMode>({ kind: 'closed' })
+  const [transferOpen, setTransferOpen] = useState(false)
   const [actioningId, setActioningId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -79,12 +81,22 @@ export function AccountsPage() {
             Manage your accounts. Transactions and uploads are scoped to a single account.
           </p>
         </div>
-        <button
-          onClick={() => setModal({ kind: 'create' })}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
-        >
-          + Add Account
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setTransferOpen(true)}
+            disabled={accounts.length < 2}
+            className="px-4 py-2 border border-border text-foreground rounded-md text-sm font-medium hover:bg-accent disabled:opacity-50"
+            title={accounts.length < 2 ? 'Add a second account to enable transfers' : undefined}
+          >
+            ↔ Transfer
+          </button>
+          <button
+            onClick={() => setModal({ kind: 'create' })}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+          >
+            + Add Account
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -184,6 +196,16 @@ export function AccountsPage() {
           onClose={() => setModal({ kind: 'closed' })}
           onSaved={async () => {
             setModal({ kind: 'closed' })
+            await load()
+          }}
+        />
+      )}
+
+      {transferOpen && (
+        <TransferModal
+          onClose={() => setTransferOpen(false)}
+          onSaved={async () => {
+            setTransferOpen(false)
             await load()
           }}
         />

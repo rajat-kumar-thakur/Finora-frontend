@@ -19,6 +19,8 @@ export interface Transaction {
   balance: number | null
   source: 'pdf' | 'manual'
   raw_text?: string
+  is_transfer?: boolean
+  transfer_pair_id?: string | null
   created_at: string
 }
 
@@ -59,8 +61,24 @@ export interface TransactionFilter {
   amount_max?: number
   balance_min?: number
   balance_max?: number
+  is_transfer?: boolean
   page?: number
   page_size?: number
+}
+
+export interface TransferCreate {
+  from_account_id: string
+  to_account_id: string
+  amount: number
+  date: string
+  description?: string
+  category_id?: string
+}
+
+export interface TransferResponse {
+  transfer_pair_id: string
+  debit: Transaction
+  credit: Transaction
 }
 
 export interface TransactionListResponse {
@@ -105,9 +123,17 @@ export const transactionApi = {
   },
 
   /**
-   * Delete a transaction
+   * Delete a transaction. If the transaction is part of a transfer pair,
+   * the linked leg is deleted server-side as well.
    */
   delete: async (id: string): Promise<void> => {
     return apiClient.delete<void>(`/api/v1/transactions/${id}`)
+  },
+
+  /**
+   * Create an inter-account transfer (atomic debit + credit pair).
+   */
+  transfer: async (data: TransferCreate): Promise<TransferResponse> => {
+    return apiClient.post<TransferResponse>('/api/v1/transactions/transfer', data)
   },
 }

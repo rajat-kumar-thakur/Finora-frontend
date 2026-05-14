@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { transactionApi, categoryApi, type Transaction, type TransactionFilter, type Category } from '@/lib/api'
 import { bankAccountApi, type BankAccount } from '@/lib/api/bank-accounts'
+import { TransferModal } from '@/components/transfer-modal'
 
 interface TransactionListProps {
   filters?: TransactionFilter
@@ -28,6 +29,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
   const [saving, setSaving] = useState(false)
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
+  const [transferOpen, setTransferOpen] = useState(false)
   const [filterDebouncing, setFilterDebouncing] = useState(false)
   const [newTransaction, setNewTransaction] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -414,12 +416,32 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         <p className="text-sm text-muted-foreground">No transactions yet</p>
         <p className="text-xs text-muted-foreground/70 mt-1">Upload a statement or add manually</p>
         {!compact && (
-          <button 
-            onClick={() => setIsAdding(true)}
-            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
-          >
-            Add Transaction
-          </button>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setIsAdding(true)}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
+            >
+              Add Transaction
+            </button>
+            <button
+              onClick={() => setTransferOpen(true)}
+              disabled={accounts.length < 2}
+              className="px-4 py-2 border border-border text-foreground rounded-md text-sm hover:bg-accent disabled:opacity-50"
+              title={accounts.length < 2 ? 'Add a second account first' : undefined}
+            >
+              ↔ Transfer
+            </button>
+          </div>
+        )}
+        {transferOpen && (
+          <TransferModal
+            onClose={() => setTransferOpen(false)}
+            onSaved={() => {
+              setTransferOpen(false)
+              loadTransactionsRef.current()
+              if (onUpdate) onUpdate()
+            }}
+          />
         )}
       </div>
     )
@@ -608,6 +630,11 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                 {tx.account_name && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-accent/30 text-muted-foreground">
                     {tx.account_name}
+                  </span>
+                )}
+                {tx.is_transfer && (
+                  <span className="text-[9px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500">
+                    ↔ Transfer
                   </span>
                 )}
                 {category && (
@@ -808,6 +835,14 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
           >
             + Add Transaction
           </button>
+          <button
+            onClick={() => setTransferOpen(true)}
+            disabled={accounts.length < 2}
+            className="px-4 py-2.5 border border-border text-foreground text-sm font-medium rounded-lg hover:bg-accent disabled:opacity-50"
+            title={accounts.length < 2 ? 'Add a second account to enable transfers' : 'Transfer between accounts'}
+          >
+            ↔ Transfer
+          </button>
         </div>
 
         {/* Mobile Add Form */}
@@ -916,6 +951,20 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
           </div>
         )}
       </div>
+
+      {/* Desktop Toolbar */}
+      {!compact && (
+        <div className="hidden lg:flex items-center justify-end gap-2">
+          <button
+            onClick={() => setTransferOpen(true)}
+            disabled={accounts.length < 2}
+            className="px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-card hover:bg-accent disabled:opacity-50 transition-colors"
+            title={accounts.length < 2 ? 'Add a second account to enable transfers' : 'Transfer between accounts'}
+          >
+            ↔ Transfer
+          </button>
+        </div>
+      )}
 
       {/* Desktop Table View */}
       <div className="hidden lg:block overflow-x-auto rounded-lg border border-border bg-card">
@@ -1285,7 +1334,17 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     </div>
                   </td>
                   <td className="p-3 whitespace-nowrap text-xs text-muted-foreground" title={tx.account_name ?? undefined}>
-                    {tx.account_name ?? '—'}
+                    <div className="flex items-center gap-1">
+                      <span>{tx.account_name ?? '—'}</span>
+                      {tx.is_transfer && (
+                        <span
+                          className="text-[9px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500"
+                          title="Inter-account transfer"
+                        >
+                          ↔ Transfer
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-3 whitespace-nowrap">
                     {editingCategoryId === tx.id ? (
@@ -1368,7 +1427,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
           <div className="text-xs text-muted-foreground">
             Showing {transactions.length} of {pagination.total} transactions
           </div>
-          
+
           {pagination.total_pages > 1 && (
             <div className="flex items-center gap-2">
               <button
@@ -1391,6 +1450,18 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
             </div>
           )}
         </div>
+      )}
+
+      {transferOpen && (
+        <TransferModal
+          onClose={() => setTransferOpen(false)}
+          onSaved={() => {
+            setTransferOpen(false)
+            loadTransactionsRef.current()
+            loadAccounts()
+            if (onUpdate) onUpdate()
+          }}
+        />
       )}
     </div>
   )

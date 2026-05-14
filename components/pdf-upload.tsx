@@ -8,6 +8,7 @@
 
 import { useState } from 'react'
 import { uploadApi, type UploadPdfResponse } from '@/lib/api'
+import { AccountSelector } from '@/components/account-selector'
 
 interface PdfUploadProps {
   onUploadSuccess?: (result: UploadPdfResponse) => void
@@ -15,6 +16,7 @@ interface PdfUploadProps {
 
 export function PdfUpload({ onUploadSuccess }: PdfUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [accountId, setAccountId] = useState<string | undefined>(undefined)
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<UploadPdfResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -41,21 +43,25 @@ export function PdfUpload({ onUploadSuccess }: PdfUploadProps) {
 
   const handleUpload = async () => {
     if (!selectedFile) return
+    if (!accountId) {
+      setError('Please select a bank account before uploading')
+      return
+    }
 
     setUploading(true)
     setError(null)
-    
+
     try {
-      const uploadResult = await uploadApi.uploadPdf(selectedFile)
+      const uploadResult = await uploadApi.uploadPdf(selectedFile, accountId)
       setResult(uploadResult)
-      
+
       if (onUploadSuccess) {
         onUploadSuccess(uploadResult)
       }
-      
+
       // Reset file input
       setSelectedFile(null)
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
@@ -66,49 +72,62 @@ export function PdfUpload({ onUploadSuccess }: PdfUploadProps) {
   return (
     <div className="space-y-4">
       <div className="border-2 border-dashed border-border rounded-lg p-8 bg-card">
-        <div className="text-center space-y-4">
-          <div className="text-5xl">📄</div>
-          
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              Upload Bank Statement
-            </h3>
-            <p className="text-sm text-muted-foreground mt-2">
-              PDF format only, max 10MB
-            </p>
+        <div className="space-y-4">
+          {/* Bank Account Selector */}
+          <div className="max-w-sm mx-auto">
+            <AccountSelector
+              id="pdf-upload-account"
+              label="Add transactions to which account?"
+              value={accountId}
+              onChange={setAccountId}
+            />
           </div>
 
-          <div className="flex items-center justify-center gap-4">
-            <label
-              htmlFor="pdf-upload"
-              className="cursor-pointer inline-flex items-center px-5 py-2.5 border border-border rounded-lg shadow-sm text-sm font-medium text-foreground bg-accent hover:bg-accent/80 transition-colors"
-            >
-              Choose File
-              <input
-                id="pdf-upload"
-                type="file"
-                accept=".pdf"
-                onChange={handleFileSelect}
-                className="sr-only"
-              />
-            </label>
+          <div className="text-center space-y-4">
+            <div className="text-5xl">📄</div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">
+                Upload Bank Statement
+              </h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                PDF format only, max 10MB
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center gap-4">
+              <label
+                htmlFor="pdf-upload"
+                className="cursor-pointer inline-flex items-center px-5 py-2.5 border border-border rounded-lg shadow-sm text-sm font-medium text-foreground bg-accent hover:bg-accent/80 transition-colors"
+              >
+                Choose File
+                <input
+                  id="pdf-upload"
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileSelect}
+                  className="sr-only"
+                />
+              </label>
+
+              {selectedFile && (
+                <button
+                  onClick={handleUpload}
+                  disabled={uploading || !accountId}
+                  className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title={!accountId ? 'Select a bank account first' : undefined}
+                >
+                  {uploading ? 'Uploading...' : 'Upload & Extract'}
+                </button>
+              )}
+            </div>
 
             {selectedFile && (
-              <button
-                onClick={handleUpload}
-                disabled={uploading}
-                className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {uploading ? 'Uploading...' : 'Upload & Extract'}
-              </button>
+              <p className="text-sm text-foreground font-medium">
+                Selected: {selectedFile.name}
+              </p>
             )}
           </div>
-
-          {selectedFile && (
-            <p className="text-sm text-foreground font-medium">
-              Selected: {selectedFile.name}
-            </p>
-          )}
         </div>
       </div>
 

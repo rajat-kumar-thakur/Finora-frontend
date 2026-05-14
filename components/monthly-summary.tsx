@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { summaryApi, type MonthlySummary } from '@/lib/api'
 import { MonthComparison } from './month-comparison'
+import { AccountSelector } from '@/components/account-selector'
 
 interface MonthlySummaryCardProps {
   refreshTrigger?: number
@@ -21,20 +22,26 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
 
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
+  // "" sentinel = All Accounts (cumulative)
+  const [selectedAccount, setSelectedAccount] = useState<string>("")
 
   const loadSummary = useCallback(async () => {
     setLoading(true)
     setError(null)
 
     try {
-      const data = await summaryApi.monthly(selectedYear, selectedMonth)
+      const data = await summaryApi.monthly(
+        selectedYear,
+        selectedMonth,
+        selectedAccount || undefined
+      )
       setSummary(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load summary')
     } finally {
       setLoading(false)
     }
-  }, [selectedYear, selectedMonth])
+  }, [selectedYear, selectedMonth, selectedAccount])
 
   useEffect(() => {
     loadSummary()
@@ -68,7 +75,14 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4">
         <h2 className="text-sm sm:text-base font-semibold text-foreground">Monthly Summary</h2>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <AccountSelector
+            id="monthly-summary-account"
+            value={selectedAccount}
+            onChange={setSelectedAccount}
+            includeAllOption
+            className="min-w-[140px]"
+          />
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}

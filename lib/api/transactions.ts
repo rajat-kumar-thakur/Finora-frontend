@@ -14,6 +14,8 @@ export interface Transaction {
   transaction_type: 'debit' | 'credit'
   category_id: string | null
   category_name: string | null
+  account_id: string | null
+  account_name: string | null
   balance: number | null
   source: 'pdf' | 'manual'
   raw_text?: string
@@ -26,6 +28,7 @@ export interface TransactionCreate {
   amount: number
   transaction_type: 'debit' | 'credit'
   category_id?: string
+  account_id?: string
   balance?: number
   source?: 'pdf' | 'manual'
   raw_text?: string
@@ -37,6 +40,7 @@ export interface TransactionUpdate {
   amount?: number
   transaction_type?: 'debit' | 'credit'
   category_id?: string
+  account_id?: string
   balance?: number
   source?: 'pdf' | 'manual'
   raw_text?: string
@@ -48,6 +52,7 @@ export interface TransactionFilter {
   date?: string  // Exact date match
   transaction_type?: 'debit' | 'credit'
   category_id?: string
+  account_id?: string  // Scope to a single bank account
   source?: 'pdf' | 'manual'
   description?: string  // Text search in description
   amount_min?: number

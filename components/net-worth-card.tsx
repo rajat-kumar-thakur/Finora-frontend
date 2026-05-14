@@ -102,25 +102,50 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
 
       {/* Account Details */}
       <div className="space-y-2">
-        <div className="text-xs font-medium text-muted-foreground mb-2">Your Accounts</div>
-        
-        {/* Main Account */}
-        <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg border border-border hover:bg-accent transition-all duration-200">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <div className="text-sm font-medium text-foreground">Main Account</div>
-              <div className="text-xs text-muted-foreground">Current balance</div>
-            </div>
-          </div>
-          <div className="text-sm font-semibold text-foreground">
-            {formatCurrency(netWorth?.bank_balance || 0)}
-          </div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs font-medium text-muted-foreground">Your Accounts</div>
+          <Link href="/accounts" className="text-xs text-primary hover:text-primary/80">
+            Manage →
+          </Link>
         </div>
+
+        {/* Per-account tiles (dynamic) */}
+        {netWorth?.accounts && netWorth.accounts.length > 0 ? (
+          netWorth.accounts.map((acc) => (
+            <Link href="/accounts" key={acc.account_id} className="block">
+              <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg border border-border hover:bg-accent transition-all duration-200">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate flex items-center gap-1">
+                      {acc.name}
+                      {acc.is_primary && (
+                        <span className="text-[9px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                          Primary
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{acc.bank_name}</div>
+                  </div>
+                </div>
+                <div className="text-sm font-semibold text-foreground flex-shrink-0">
+                  {formatCurrency(acc.balance)}
+                </div>
+              </div>
+            </Link>
+          ))
+        ) : (
+          <Link href="/accounts" className="block">
+            <div className="p-3 bg-accent/30 rounded-lg border border-dashed border-border text-center hover:bg-accent transition-colors">
+              <div className="text-xs text-muted-foreground">No bank accounts yet</div>
+              <div className="text-xs text-primary mt-1">+ Add your first account</div>
+            </div>
+          </Link>
+        )}
 
         {/* Investments - Coming Soon */}
         <Link href="/investments" className="block">

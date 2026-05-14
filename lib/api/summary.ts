@@ -27,31 +27,47 @@ export interface CategoryBreakdownResponse {
   breakdown: CategoryBreakdownItem[]
 }
 
+export interface NetWorthAccountBreakdown {
+  account_id: string
+  name: string
+  bank_name: string
+  is_primary: boolean
+  balance: number
+}
+
 export interface NetWorth {
   bank_balance: number
   investments: number
   total_net_worth: number
+  accounts?: NetWorthAccountBreakdown[]
   note: string
   calculated_at: string
 }
 
 export const summaryApi = {
   /**
-   * Get monthly summary
+   * Get monthly summary, optionally scoped to one bank account.
    */
-  monthly: async (year: number, month: number): Promise<MonthlySummary> => {
+  monthly: async (
+    year: number,
+    month: number,
+    accountId?: string
+  ): Promise<MonthlySummary> => {
+    const params: Record<string, string | number> = { year, month }
+    if (accountId) params.account_id = accountId
     return apiClient.get<MonthlySummary>('/api/v1/summary/monthly', {
-      params: { year, month },
+      params: params as Record<string, string | number | boolean>,
     })
   },
 
   /**
-   * Get category breakdown
+   * Get category breakdown.
    */
   categoryBreakdown: async (filters?: {
     start_date?: string
     end_date?: string
     transaction_type?: 'debit' | 'credit'
+    account_id?: string
   }): Promise<CategoryBreakdownResponse> => {
     return apiClient.get<CategoryBreakdownResponse>('/api/v1/summary/category-breakdown', {
       params: filters as Record<string, string>,
@@ -59,7 +75,7 @@ export const summaryApi = {
   },
 
   /**
-   * Get net worth
+   * Get net worth (cumulative across all accounts + per-account breakdown).
    */
   netWorth: async (): Promise<NetWorth> => {
     return apiClient.get<NetWorth>('/api/v1/summary/net-worth')

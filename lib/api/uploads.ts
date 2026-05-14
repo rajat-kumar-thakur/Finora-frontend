@@ -12,6 +12,8 @@ export interface UploadResponse {
   duplicate_count: number
   error_count: number
   errors: string[]
+  account_id?: string
+  account_name?: string
   message: string
 }
 
@@ -21,13 +23,13 @@ export type UploadImageResponse = UploadResponse
 
 export const uploadApi = {
   /**
-   * Upload bank statement PDF and extract transactions
+   * Upload bank statement PDF and extract transactions to a specific bank account.
    */
-  uploadPdf: async (file: File): Promise<UploadPdfResponse> => {
+  uploadPdf: async (file: File, accountId: string): Promise<UploadPdfResponse> => {
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('account_id', accountId)
 
-    // Get auth token using the proper auth function
     const token = getAccessToken()
 
     const response = await fetch(`${env.apiBaseUrl}/api/v1/uploads/pdf`, {
@@ -47,14 +49,14 @@ export const uploadApi = {
   },
 
   /**
-   * Upload bank statement image and extract transactions
+   * Upload bank statement image and extract transactions to a specific bank account.
    * Supported formats: JPG, JPEG, PNG, WEBP
    */
-  uploadImage: async (file: File): Promise<UploadImageResponse> => {
+  uploadImage: async (file: File, accountId: string): Promise<UploadImageResponse> => {
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('account_id', accountId)
 
-    // Get auth token using the proper auth function
     const token = getAccessToken()
 
     const response = await fetch(`${env.apiBaseUrl}/api/v1/uploads/image`, {

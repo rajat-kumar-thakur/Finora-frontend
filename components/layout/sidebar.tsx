@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Shield,
   Landmark,
+  Wallet,
 } from "lucide-react"
 
 import Link from "next/link"
@@ -173,6 +174,9 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
                   </NavItem>
                   <NavItem href="/transactions" icon={ArrowLeftRight}>
                     Transactions
+                  </NavItem>
+                  <NavItem href="/accounts" icon={Wallet}>
+                    Accounts
                   </NavItem>
                   <NavItem href="/categories" icon={FolderKanban}>
                     Categories

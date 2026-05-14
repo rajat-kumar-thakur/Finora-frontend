@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react'
 import { transactionApi, categoryApi, type Transaction, type TransactionCreate, type Category } from '@/lib/api'
+import { AccountSelector } from '@/components/account-selector'
 
 interface TransactionEditModalProps {
   transaction: Transaction
@@ -22,6 +23,7 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
     amount: transaction.amount,
     transaction_type: transaction.transaction_type as 'debit' | 'credit',
     category_id: transaction.category_id || undefined,
+    account_id: transaction.account_id || undefined,
     source: transaction.source,
     raw_text: transaction.raw_text,
   })
@@ -92,6 +94,14 @@ export function TransactionEditModal({ transaction, onClose, onSaved }: Transact
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
+
+          {/* Bank Account */}
+          <AccountSelector
+            id="tx-edit-account"
+            label="Bank Account"
+            value={formData.account_id}
+            onChange={(accountId) => setFormData({ ...formData, account_id: accountId })}
+          />
 
           {/* Date */}
           <div>

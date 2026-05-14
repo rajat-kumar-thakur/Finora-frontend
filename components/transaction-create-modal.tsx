@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react'
 import { transactionApi, categoryApi, type TransactionCreate, type Category } from '@/lib/api'
+import { AccountSelector } from '@/components/account-selector'
 
 interface TransactionCreateModalProps {
   onClose: () => void
@@ -21,6 +22,7 @@ export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateMo
     amount: 0,
     transaction_type: 'debit',
     category_id: undefined,
+    account_id: undefined,
     balance: undefined,
     source: 'manual',
     raw_text: undefined,
@@ -32,8 +34,34 @@ export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateMo
 
   useEffect(() => {
     loadCategories()
-    loadLatestBalance()
   }, [])
+
+  // Reload latest balance whenever the selected account changes
+  useEffect(() => {
+    if (!formData.account_id) return
+    let cancelled = false
+    const load = async () => {
+      try {
+        const response = await transactionApi.list({
+          account_id: formData.account_id,
+          page: 1,
+          page_size: 1,
+        })
+        if (cancelled) return
+        if (response.transactions.length > 0) {
+          setLatestBalance(response.transactions[0].balance || 0)
+        } else {
+          setLatestBalance(0)
+        }
+      } catch {
+        if (!cancelled) setLatestBalance(0)
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [formData.account_id])
 
   useEffect(() => {
     if (latestBalance !== null && formData.amount) {
@@ -42,7 +70,7 @@ export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateMo
         const newBalance = formData.transaction_type === 'credit'
           ? latestBalance + amount
           : latestBalance - amount
-        
+
         setFormData(prev => ({
           ...prev,
           balance: parseFloat(newBalance.toFixed(2))
@@ -57,19 +85,6 @@ export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateMo
       setCategories(data)
     } catch {
       // Silently fail - categories will show empty
-    }
-  }
-
-  const loadLatestBalance = async () => {
-    try {
-      const response = await transactionApi.list({ page: 1, page_size: 1 })
-      if (response.transactions.length > 0) {
-        setLatestBalance(response.transactions[0].balance || 0)
-      } else {
-        setLatestBalance(0)
-      }
-    } catch {
-      // Silently fail - balance will default to 0
     }
   }
 
@@ -104,6 +119,14 @@ export function TransactionCreateModal({ onClose, onSaved }: TransactionCreateMo
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
+
+          {/* Bank Account */}
+          <AccountSelector
+            id="tx-account"
+            label="Bank Account"
+            value={formData.account_id}
+            onChange={(accountId) => setFormData({ ...formData, account_id: accountId })}
+          />
 
           {/* Date */}
           <div>

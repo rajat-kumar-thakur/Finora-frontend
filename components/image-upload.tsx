@@ -8,6 +8,7 @@
 
 import { useState } from 'react'
 import { uploadApi, type UploadImageResponse } from '@/lib/api'
+import { AccountSelector } from '@/components/account-selector'
 
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
 
@@ -18,6 +19,7 @@ interface ImageUploadProps {
 export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [accountId, setAccountId] = useState<string | undefined>(undefined)
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<UploadImageResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -52,12 +54,16 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
 
   const handleUpload = async () => {
     if (!selectedFile) return
+    if (!accountId) {
+      setError('Please select a bank account before uploading')
+      return
+    }
 
     setUploading(true)
     setError(null)
 
     try {
-      const uploadResult = await uploadApi.uploadImage(selectedFile)
+      const uploadResult = await uploadApi.uploadImage(selectedFile, accountId)
       setResult(uploadResult)
 
       if (onUploadSuccess) {
@@ -85,7 +91,18 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
   return (
     <div className="space-y-4">
       <div className="border-2 border-dashed border-border rounded-lg p-8 bg-card">
-        <div className="text-center space-y-4">
+        <div className="space-y-4">
+          {/* Bank Account Selector */}
+          <div className="max-w-sm mx-auto">
+            <AccountSelector
+              id="image-upload-account"
+              label="Add transactions to which account?"
+              value={accountId}
+              onChange={setAccountId}
+            />
+          </div>
+
+          <div className="text-center space-y-4">
           <div className="text-5xl">🖼️</div>
 
           <div>
@@ -135,8 +152,9 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
               <button
                 type="button"
                 onClick={handleUpload}
-                disabled={uploading}
+                disabled={uploading || !accountId}
                 className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title={!accountId ? 'Select a bank account first' : undefined}
               >
                 {uploading ? 'Uploading...' : 'Upload & Extract'}
               </button>
@@ -148,6 +166,7 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
               Selected: {selectedFile.name}
             </p>
           )}
+          </div>
         </div>
       </div>
 

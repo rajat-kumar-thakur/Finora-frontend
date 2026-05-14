@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { transactionApi, categoryApi, type Transaction, type TransactionFilter, type Category } from '@/lib/api'
+import { bankAccountApi, type BankAccount } from '@/lib/api/bank-accounts'
 
 interface TransactionListProps {
   filters?: TransactionFilter
@@ -19,6 +20,7 @@ interface TransactionListProps {
 export function TransactionList({ filters, refreshTrigger, onUpdate, compact = false }: TransactionListProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [accounts, setAccounts] = useState<BankAccount[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -33,6 +35,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     amount: '',
     transaction_type: 'debit',
     category_id: '',
+    account_id: '',
     balance: ''
   })
   const [pagination, setPagination] = useState({
@@ -47,6 +50,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     date: '',
     description: '',
     category_id: '',
+    account_id: '',
     transaction_type: '',
     amount_min: '',
     amount_max: '',
@@ -75,6 +79,9 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       }
       if (columnFilters.category_id) {
         filterParams.category_id = columnFilters.category_id
+      }
+      if (columnFilters.account_id) {
+        filterParams.account_id = columnFilters.account_id
       }
       if (columnFilters.transaction_type) {
         filterParams.transaction_type = columnFilters.transaction_type
@@ -117,6 +124,21 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     }
   }, [])
 
+  const loadAccounts = useCallback(async () => {
+    try {
+      const data = await bankAccountApi.list()
+      setAccounts(data)
+      // Default the new-transaction account to primary the first time we have accounts
+      setNewTransaction((prev) => {
+        if (prev.account_id) return prev
+        const primary = data.find((a) => a.is_primary) ?? data[0]
+        return primary ? { ...prev, account_id: primary.id } : prev
+      })
+    } catch {
+      // Silently fail - selector will show empty
+    }
+  }, [])
+
   // Keep a ref to the latest loadTransactions to avoid effect re-triggers on page changes
   const loadTransactionsRef = useRef(loadTransactions)
   useEffect(() => {
@@ -144,29 +166,46 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
   useEffect(() => {
     loadCategories()
-  }, [loadCategories, refreshTrigger])
+    loadAccounts()
+  }, [loadCategories, loadAccounts, refreshTrigger])
 
-  // Auto-calculate balance when adding new transaction
+  // Auto-calculate balance when adding new transaction — scoped to the chosen account
   useEffect(() => {
-    if (isAdding && newTransaction.amount && pagination.page === 1) {
-      const amount = parseFloat(newTransaction.amount)
-      if (!isNaN(amount)) {
-        // Use the latest transaction's balance as the starting point
-        // If no transactions exist, assume 0
+    if (!isAdding || !newTransaction.amount || pagination.page !== 1) return
+    const amount = parseFloat(newTransaction.amount)
+    if (isNaN(amount)) return
+
+    let cancelled = false
+    const computeBalance = async () => {
+      let baseBalance = 0
+      if (newTransaction.account_id) {
+        try {
+          const response = await transactionApi.list({
+            account_id: newTransaction.account_id,
+            page: 1,
+            page_size: 1,
+          })
+          if (response.transactions.length > 0) {
+            baseBalance = response.transactions[0].balance || 0
+          }
+        } catch {
+          // ignore — fall back to 0
+        }
+      } else {
         const latestTx = transactions[0]
-        const currentBalance = latestTx?.balance || 0
-        
-        const newBalance = newTransaction.transaction_type === 'credit' 
-          ? currentBalance + amount 
-          : currentBalance - amount
-          
-        setNewTransaction(prev => ({
-          ...prev,
-          balance: newBalance.toFixed(2)
-        }))
+        baseBalance = latestTx?.balance || 0
       }
+      if (cancelled) return
+      const newBalance = newTransaction.transaction_type === 'credit'
+        ? baseBalance + amount
+        : baseBalance - amount
+      setNewTransaction(prev => ({ ...prev, balance: newBalance.toFixed(2) }))
     }
-  }, [newTransaction.amount, newTransaction.transaction_type, isAdding, transactions, pagination.page])
+    void computeBalance()
+    return () => {
+      cancelled = true
+    }
+  }, [newTransaction.amount, newTransaction.transaction_type, newTransaction.account_id, isAdding, transactions, pagination.page])
 
 
 
@@ -178,6 +217,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       amount: String(tx.amount),
       transaction_type: tx.transaction_type,
       category_id: tx.category_id || '',
+      account_id: tx.account_id || '',
       balance: tx.balance !== null ? String(tx.balance) : '',
     })
   }
@@ -197,11 +237,15 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       amount: parseFloat(editForm.amount as string),
       transaction_type: editForm.transaction_type as 'debit' | 'credit',
       category_id: editForm.category_id ? String(editForm.category_id) : undefined,
+      account_id: editForm.account_id ? String(editForm.account_id) : undefined,
       balance: editForm.balance ? parseFloat(editForm.balance as string) : undefined,
     }
 
     // Optimistic update - update UI immediately
     const previousTransactions = transactions
+    const targetAccount = updateData.account_id
+      ? accounts.find((a) => a.id === updateData.account_id)
+      : null
     setTransactions(prev => prev.map(tx => {
       if (tx.id !== id) return tx
       return {
@@ -211,6 +255,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         amount: updateData.amount,
         transaction_type: updateData.transaction_type,
         category_id: updateData.category_id || null,
+        account_id: updateData.account_id ?? tx.account_id,
+        account_name: targetAccount ? targetAccount.name : tx.account_name,
         balance: updateData.balance || tx.balance,
       }
     }))
@@ -237,6 +283,11 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     // Create optimistic transaction with temporary ID
     const tempId = `temp-${Date.now()}`
     const category = categories.find(c => c.id === newTransaction.category_id)
+    const account = accounts.find(a => a.id === newTransaction.account_id)
+    const primaryAccountId = accounts.find(a => a.is_primary)?.id ?? accounts[0]?.id ?? null
+    const resolvedAccountId = newTransaction.account_id || primaryAccountId
+    const resolvedAccountName =
+      account?.name ?? accounts.find(a => a.id === resolvedAccountId)?.name ?? null
     const optimisticTx: Transaction = {
       id: tempId,
       date: newTransaction.date + 'T00:00:00',
@@ -245,6 +296,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       transaction_type: newTransaction.transaction_type as 'credit' | 'debit',
       category_id: newTransaction.category_id || null,
       category_name: category?.name || null,
+      account_id: resolvedAccountId,
+      account_name: resolvedAccountName,
       balance: newTransaction.balance ? parseFloat(newTransaction.balance) : null,
       source: 'manual',
       created_at: new Date().toISOString(),
@@ -261,6 +314,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       amount: '',
       transaction_type: 'debit',
       category_id: '',
+      account_id: primaryAccountId ?? '',
       balance: ''
     })
 
@@ -271,6 +325,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         amount: parseFloat(savedNewTransaction.amount),
         transaction_type: savedNewTransaction.transaction_type as 'credit' | 'debit',
         category_id: savedNewTransaction.category_id || undefined,
+        account_id: savedNewTransaction.account_id || undefined,
         balance: savedNewTransaction.balance ? parseFloat(savedNewTransaction.balance) : undefined,
       })
 
@@ -480,6 +535,22 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
             </div>
           </div>
           <div>
+            <label className="text-xs text-muted-foreground block mb-1">Account</label>
+            <select
+              value={editForm.account_id ?? ''}
+              onChange={(e) => setEditForm({ ...editForm, account_id: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+              title="Bank account"
+            >
+              {accounts.length === 0 && <option value="">No accounts</option>}
+              {accounts.map((acc) => (
+                <option key={acc.id} value={acc.id}>
+                  {acc.is_primary ? '⭐ ' : ''}{acc.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
             <label className="text-xs text-muted-foreground block mb-1">Category</label>
             <select
               value={editForm.category_id}
@@ -534,6 +605,11 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                 <span className="text-xs text-muted-foreground">
                   {new Date(tx.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </span>
+                {tx.account_name && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-accent/30 text-muted-foreground">
+                    {tx.account_name}
+                  </span>
+                )}
                 {category && (
                   <button
                     onClick={() => setEditingCategoryId(tx.id)}
@@ -672,6 +748,22 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         </div>
       </div>
       <div>
+        <label className="text-xs text-muted-foreground block mb-1">Account</label>
+        <select
+          value={newTransaction.account_id}
+          onChange={(e) => setNewTransaction({ ...newTransaction, account_id: e.target.value })}
+          className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+          title="Bank account"
+        >
+          {accounts.length === 0 && <option value="">No accounts</option>}
+          {accounts.map((acc) => (
+            <option key={acc.id} value={acc.id}>
+              {acc.is_primary ? '⭐ ' : ''}{acc.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
         <label className="text-xs text-muted-foreground block mb-1">Category</label>
         <select
           value={newTransaction.category_id}
@@ -730,6 +822,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                 date: '',
                 description: '',
                 category_id: '',
+                account_id: '',
                 transaction_type: '',
                 amount_min: '',
                 amount_max: '',
@@ -768,6 +861,19 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
             {categories.map(cat => (
               <option key={cat.id} value={cat.id}>
                 {cat.icon} {cat.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={columnFilters.account_id}
+            onChange={(e) => setColumnFilters({ ...columnFilters, account_id: e.target.value })}
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+            title="Filter by account"
+          >
+            <option value="">All Accounts</option>
+            {accounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.is_primary ? '⭐ ' : ''}{acc.name}
               </option>
             ))}
           </select>
@@ -818,6 +924,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
             <tr>
               <th className="text-left p-3 font-semibold text-foreground">Date</th>
               <th className="text-left p-3 font-semibold text-foreground">Description</th>
+              <th className="text-left p-3 font-semibold text-foreground">Account</th>
               <th className="text-left p-3 font-semibold text-foreground">Category</th>
               <th className="text-right p-3 font-semibold text-foreground">Type</th>
               <th className="text-right p-3 font-semibold text-foreground">Amount</th>
@@ -850,6 +957,21 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     </div>
                   )}
                 </div>
+              </th>
+              <th className="p-2">
+                <select
+                  value={columnFilters.account_id}
+                  onChange={(e) => setColumnFilters({ ...columnFilters, account_id: e.target.value })}
+                  className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                  title="Filter by account"
+                >
+                  <option value="">All Accounts</option>
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.is_primary ? '⭐ ' : ''}{acc.name}
+                    </option>
+                  ))}
+                </select>
               </th>
               <th className="p-2">
                 <select
@@ -922,6 +1044,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     date: '',
                     description: '',
                     category_id: '',
+                    account_id: '',
                     transaction_type: '',
                     amount_min: '',
                     amount_max: '',
@@ -958,6 +1081,21 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                       className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
                       autoFocus
                     />
+                  </td>
+                  <td className="p-2">
+                    <select
+                      value={newTransaction.account_id}
+                      onChange={(e) => setNewTransaction({ ...newTransaction, account_id: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                      title="Bank account"
+                    >
+                      {accounts.length === 0 && <option value="">No accounts</option>}
+                      {accounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.is_primary ? '⭐ ' : ''}{acc.name}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="p-2">
                     <select
@@ -1022,11 +1160,11 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                   </td>
                 </tr>
               ) : (
-                <tr 
+                <tr
                   className="hover:bg-accent/50 cursor-pointer border-b border-border border-dashed transition-colors"
                   onClick={() => setIsAdding(true)}
                 >
-                  <td colSpan={7} className="p-2 text-center text-xs text-muted-foreground hover:text-primary font-medium">
+                  <td colSpan={8} className="p-2 text-center text-xs text-muted-foreground hover:text-primary font-medium">
                     + Add new transaction
                   </td>
                 </tr>
@@ -1054,6 +1192,21 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                       onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                       className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
                     />
+                  </td>
+                  <td className="p-2">
+                    <select
+                      value={editForm.account_id ?? ''}
+                      onChange={(e) => setEditForm({ ...editForm, account_id: e.target.value })}
+                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                      title="Bank account"
+                    >
+                      {accounts.length === 0 && <option value="">No accounts</option>}
+                      {accounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.is_primary ? '⭐ ' : ''}{acc.name}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="p-2">
                     <select
@@ -1130,6 +1283,9 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     <div className="max-w-[300px] truncate whitespace-nowrap" style={{ direction: 'rtl', textAlign: 'left' }} title={tx.description}>
                       {tx.description}
                     </div>
+                  </td>
+                  <td className="p-3 whitespace-nowrap text-xs text-muted-foreground" title={tx.account_name ?? undefined}>
+                    {tx.account_name ?? '—'}
                   </td>
                   <td className="p-3 whitespace-nowrap">
                     {editingCategoryId === tx.id ? (

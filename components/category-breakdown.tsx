@@ -11,6 +11,34 @@ import { summaryApi, type CategoryBreakdownItem } from '@/lib/api'
 
 type Mode = 'debit' | 'credit' | 'net'
 
+// 0 sentinel = "All months of the chosen year"; year=0 sentinel = "All Time"
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+
+function lastDayOfMonth(year: number, month: number): number {
+  // month is 1-indexed
+  return new Date(year, month, 0).getDate()
+}
+
+function buildDateRange(year: number, month: number): { start_date?: string; end_date?: string } {
+  if (year === 0) return {} // All Time
+  if (month === 0) {
+    // Whole year
+    return {
+      start_date: `${year}-01-01T00:00:00`,
+      end_date: `${year}-12-31T23:59:59`,
+    }
+  }
+  const mm = String(month).padStart(2, '0')
+  const lastDay = String(lastDayOfMonth(year, month)).padStart(2, '0')
+  return {
+    start_date: `${year}-${mm}-01T00:00:00`,
+    end_date: `${year}-${mm}-${lastDay}T23:59:59`,
+  }
+}
+
 interface NetItem {
   category_id: string
   category_name: string
@@ -26,6 +54,9 @@ function formatINR2(amount: number): string {
 
 export function CategoryBreakdown() {
   const [mode, setMode] = useState<Mode>('debit')
+  const now = new Date()
+  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1)
   const [breakdown, setBreakdown] = useState<CategoryBreakdownItem[]>([])
   const [netItems, setNetItems] = useState<NetItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,11 +66,13 @@ export function CategoryBreakdown() {
     setLoading(true)
     setError(null)
 
+    const range = buildDateRange(selectedYear, selectedMonth)
+
     try {
       if (mode === 'net') {
         const [debitRes, creditRes] = await Promise.all([
-          summaryApi.categoryBreakdown({ transaction_type: 'debit' }),
-          summaryApi.categoryBreakdown({ transaction_type: 'credit' }),
+          summaryApi.categoryBreakdown({ transaction_type: 'debit', ...range }),
+          summaryApi.categoryBreakdown({ transaction_type: 'credit', ...range }),
         ])
 
         const map = new Map<string, NetItem>()
@@ -76,7 +109,7 @@ export function CategoryBreakdown() {
         setNetItems(merged)
         setBreakdown([])
       } else {
-        const data = await summaryApi.categoryBreakdown({ transaction_type: mode })
+        const data = await summaryApi.categoryBreakdown({ transaction_type: mode, ...range })
         setBreakdown(data.breakdown)
         setNetItems([])
       }
@@ -85,7 +118,7 @@ export function CategoryBreakdown() {
     } finally {
       setLoading(false)
     }
-  }, [mode])
+  }, [mode, selectedYear, selectedMonth])
 
   useEffect(() => {
     loadBreakdown()
@@ -117,8 +150,36 @@ export function CategoryBreakdown() {
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 sm:p-6 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-base sm:text-lg font-semibold text-foreground">Category Breakdown</h2>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Category Breakdown</h2>
+
+          <div className="flex flex-wrap gap-2">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              disabled={selectedYear === 0}
+              className="px-2 sm:px-3 py-2 sm:py-1.5 bg-accent text-foreground border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+              title="Month"
+            >
+              <option value={0}>All Months</option>
+              {MONTH_NAMES.map((name, idx) => (
+                <option key={idx} value={idx + 1}>{name}</option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="px-2 sm:px-3 py-2 sm:py-1.5 bg-accent text-foreground border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              title="Year"
+            >
+              <option value={0}>All Time</option>
+              {[2024, 2025, 2026].map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <div className="flex gap-2">
           <button
@@ -162,6 +223,11 @@ export function CategoryBreakdown() {
           {mode === 'debit' && 'No expenses found'}
           {mode === 'credit' && 'No income found'}
           {mode === 'net' && 'No category activity found'}
+          {selectedYear !== 0 && (
+            <span className="block text-xs mt-1">
+              for {selectedMonth === 0 ? selectedYear : `${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`}
+            </span>
+          )}
         </p>
       ) : mode === 'net' ? (
         <div className="space-y-3">

@@ -69,7 +69,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       const currentPage = pageOverride ?? pagination.page
       
       // Build filter object including column filters
-      const filterParams: Record<string, string | number | undefined> = {
+      const filterParams: Record<string, string | number | boolean | undefined> = {
         ...filters,
         page: currentPage,
         page_size: filters?.page_size || 50,

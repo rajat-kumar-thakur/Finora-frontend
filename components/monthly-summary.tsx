@@ -110,7 +110,7 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
       </div>
 
       {summary && (
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {/* Income */}
           <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2 sm:p-3">
             <div className="text-[10px] sm:text-xs text-green-400 font-medium">Income</div>
@@ -130,6 +130,17 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
             </div>
             <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
               {summary.expense_count} transaction{summary.expense_count !== 1 ? 's' : ''}
+            </div>
+          </div>
+
+          {/* Invested (MF + FD) — capital allocation, not counted as expense */}
+          <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-2 sm:p-3">
+            <div className="text-[10px] sm:text-xs text-indigo-400 font-medium">Invested</div>
+            <div className="text-sm sm:text-lg font-bold text-indigo-500 mt-0.5 sm:mt-1 truncate">
+              ₹{summary.total_invested.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
+              MF + FD
             </div>
           </div>
 

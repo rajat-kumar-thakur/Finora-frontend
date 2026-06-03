@@ -78,6 +78,12 @@ export function MonthComparison({ year, month, currentSummary }: Props) {
       moreIsBetter: false,
     },
     {
+      label: 'Invested',
+      current: currentSummary.total_invested,
+      previous: prevSummary.total_invested,
+      moreIsBetter: true,
+    },
+    {
       label: 'Net',
       current: currentSummary.net,
       previous: prevSummary.net,

@@ -11,8 +11,10 @@ export interface MonthlySummary {
   month: number
   total_income: number
   total_expenses: number
+  total_invested: number
   income_count: number
   expense_count: number
+  invested_count: number
   net: number
 }
 

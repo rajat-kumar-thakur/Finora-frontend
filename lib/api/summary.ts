@@ -70,6 +70,9 @@ export const summaryApi = {
     end_date?: string
     transaction_type?: 'debit' | 'credit'
     account_id?: string
+    // 'exclude' = spending view (no investments), 'only' = investments view,
+    // 'include' = net view (investments counted as outflow)
+    investments?: 'exclude' | 'only' | 'include'
   }): Promise<CategoryBreakdownResponse> => {
     return apiClient.get<CategoryBreakdownResponse>('/api/v1/summary/category-breakdown', {
       params: filters as Record<string, string>,

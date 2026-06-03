@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { summaryApi, type CategoryBreakdownItem } from '@/lib/api'
 
-type Mode = 'debit' | 'credit' | 'net'
+type Mode = 'debit' | 'credit' | 'net' | 'investments'
 
 // 0 sentinel = "All months of the chosen year"; year=0 sentinel = "All Time"
 const MONTH_NAMES = [
@@ -70,9 +70,11 @@ export function CategoryBreakdown() {
 
     try {
       if (mode === 'net') {
+        // Net includes investments as outflow, so the net total matches the
+        // monthly summary's Net (income − expenses − invested).
         const [debitRes, creditRes] = await Promise.all([
-          summaryApi.categoryBreakdown({ transaction_type: 'debit', ...range }),
-          summaryApi.categoryBreakdown({ transaction_type: 'credit', ...range }),
+          summaryApi.categoryBreakdown({ transaction_type: 'debit', investments: 'include', ...range }),
+          summaryApi.categoryBreakdown({ transaction_type: 'credit', investments: 'include', ...range }),
         ])
 
         const map = new Map<string, NetItem>()
@@ -109,7 +111,13 @@ export function CategoryBreakdown() {
         setNetItems(merged)
         setBreakdown([])
       } else {
-        const data = await summaryApi.categoryBreakdown({ transaction_type: mode, ...range })
+        // 'investments' = debits in investment categories only; 'debit'/'credit'
+        // exclude investment categories (pure spending / income).
+        const data = await summaryApi.categoryBreakdown({
+          transaction_type: mode === 'investments' ? 'debit' : mode,
+          investments: mode === 'investments' ? 'only' : 'exclude',
+          ...range,
+        })
         setBreakdown(data.breakdown)
         setNetItems([])
       }
@@ -206,6 +214,17 @@ export function CategoryBreakdown() {
           </button>
           <button
             type="button"
+            onClick={() => setMode('investments')}
+            className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-sm rounded-lg ${
+              mode === 'investments'
+                ? 'bg-indigo-400 text-white shadow-sm'
+                : 'bg-accent text-foreground/90 hover:bg-accent/80'
+            }`}
+          >
+            Investments
+          </button>
+          <button
+            type="button"
             onClick={() => setMode('net')}
             className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-sm rounded-lg ${
               mode === 'net'
@@ -222,6 +241,7 @@ export function CategoryBreakdown() {
         <p className="text-center text-muted-foreground py-8">
           {mode === 'debit' && 'No expenses found'}
           {mode === 'credit' && 'No income found'}
+          {mode === 'investments' && 'No investments found'}
           {mode === 'net' && 'No category activity found'}
           {selectedYear !== 0 && (
             <span className="block text-xs mt-1">
@@ -299,7 +319,11 @@ export function CategoryBreakdown() {
                   <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        mode === 'debit' ? 'bg-red-400' : 'bg-green-400'
+                        mode === 'debit'
+                          ? 'bg-red-400'
+                          : mode === 'investments'
+                            ? 'bg-indigo-400'
+                            : 'bg-green-400'
                       }`}
                       style={{ width: `${percentage}%` }}
                     />
@@ -327,7 +351,13 @@ export function CategoryBreakdown() {
                 {netTotal >= 0 ? '+' : '−'}₹{formatINR2(Math.abs(netTotal))}
               </span>
             ) : (
-              <span className={mode === 'debit' ? 'text-red-400' : 'text-green-400'}>
+              <span className={
+                mode === 'debit'
+                  ? 'text-red-400'
+                  : mode === 'investments'
+                    ? 'text-indigo-400'
+                    : 'text-green-400'
+              }>
                 ₹{formatINR2(total)}
               </span>
             )}

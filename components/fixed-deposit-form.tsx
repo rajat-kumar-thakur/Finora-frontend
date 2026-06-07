@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { fixedDepositApi, type FixedDeposit, type FixedDepositCreate } from '@/lib/api/fixed-deposits'
+import { getApiErrorMessage } from '@/lib/utils'
 
 interface FixedDepositFormProps {
   open: boolean
@@ -134,8 +135,7 @@ export function FixedDepositForm({ open, onOpenChange, onSuccess, deposit }: Fix
       onSuccess()
       onOpenChange(false)
     } catch (error: unknown) {
-      const errorMessage = (error as { data?: { detail?: string }; message?: string })?.data?.detail || (error as { message?: string })?.message || 'Failed to save deposit'
-      setError(errorMessage)
+      setError(getApiErrorMessage(error, 'Failed to save deposit'))
     } finally {
       setLoading(false)
     }

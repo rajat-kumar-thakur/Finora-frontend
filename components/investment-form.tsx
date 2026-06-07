@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { investmentApi, type Investment, type InvestmentCreate } from '@/lib/api/investments'
+import { getApiErrorMessage } from '@/lib/utils'
 
 interface InvestmentFormProps {
   open: boolean
@@ -67,8 +68,7 @@ export function InvestmentForm({ open, onOpenChange, onSuccess, investment }: In
       onSuccess()
       onOpenChange(false)
     } catch (error: unknown) {
-      const errorMessage = (error as { data?: { detail?: string }; message?: string })?.data?.detail || (error as { message?: string })?.message || 'Failed to save investment'
-      setError(errorMessage)
+      setError(getApiErrorMessage(error, 'Failed to save investment'))
     } finally {
       setLoading(false)
     }
@@ -112,6 +112,7 @@ export function InvestmentForm({ open, onOpenChange, onSuccess, investment }: In
               placeholder={isMutualFund ? 'e.g., SBI Gold Direct Plan' : 'e.g., AAPL'}
               value={formData.symbol}
               onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
+              maxLength={100}
               required
             />
           </div>
@@ -123,6 +124,7 @@ export function InvestmentForm({ open, onOpenChange, onSuccess, investment }: In
               placeholder={isMutualFund ? 'Full fund name' : 'e.g., Apple Inc.'}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              maxLength={100}
               required
             />
           </div>

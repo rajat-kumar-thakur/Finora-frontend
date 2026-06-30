@@ -7,6 +7,7 @@ import { apiClient } from './client'
 export interface FixedDeposit {
   id: string
   bank_name: string
+  bank_account_id?: string | null
   deposit_type: 'FD' | 'RD'
   depositor_type: 'General' | 'Senior Citizen' | 'Super Senior Citizen'
   principal_amount: number
@@ -29,12 +30,14 @@ export interface FixedDepositCreate {
   tenure_days: number
   start_date: string
   interest_rate?: number
+  bank_account_id?: string
   notes?: string
 }
 
 export interface FixedDepositUpdate {
   interest_rate?: number
   status?: 'Active' | 'Matured' | 'Withdrawn'
+  bank_account_id?: string
   notes?: string
 }
 

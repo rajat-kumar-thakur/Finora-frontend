@@ -7,7 +7,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { summaryApi, type CategoryBreakdownItem } from '@/lib/api'
+import { CategoryTransactionsInline } from '@/components/category-transactions-inline'
 
 type Mode = 'debit' | 'credit' | 'net' | 'investments'
 
@@ -61,6 +63,7 @@ export function CategoryBreakdown() {
   const [netItems, setNetItems] = useState<NetItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const loadBreakdown = useCallback(async () => {
     setLoading(true)
@@ -132,6 +135,11 @@ export function CategoryBreakdown() {
     loadBreakdown()
   }, [loadBreakdown])
 
+  // Collapse any open drill-down when the view (mode/period) changes.
+  useEffect(() => {
+    setExpandedId(null)
+  }, [mode, selectedYear, selectedMonth])
+
   const total = breakdown.reduce((sum, item) => sum + item.total, 0)
   const maxAbsNet = netItems.reduce((m, item) => Math.max(m, Math.abs(item.net)), 0)
   const netTotal = netItems.reduce((sum, item) => sum + item.net, 0)
@@ -155,6 +163,12 @@ export function CategoryBreakdown() {
   }
 
   const isEmpty = mode === 'net' ? netItems.length === 0 : breakdown.length === 0
+
+  // Drill-down filters: freeze the active period and derive the transaction type
+  // from the mode (net shows both legs).
+  const range = buildDateRange(selectedYear, selectedMonth)
+  const drilldownType: 'debit' | 'credit' | undefined =
+    mode === 'credit' ? 'credit' : mode === 'net' ? undefined : 'debit'
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 sm:p-6 space-y-4">
@@ -255,46 +269,66 @@ export function CategoryBreakdown() {
             const isPositive = item.net >= 0
             const barWidth = maxAbsNet > 0 ? (Math.abs(item.net) / maxAbsNet) * 100 : 0
             const hasBoth = item.income > 0 && item.expense > 0
+            const isOpen = expandedId === item.category_id
 
             return (
               <div key={item.category_id} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-foreground truncate">
-                    {item.category_name}
-                  </span>
-                  <span
-                    className={`font-semibold tabular-nums whitespace-nowrap ${
-                      isPositive ? 'text-green-400' : 'text-red-400'
-                    }`}
-                  >
-                    {isPositive ? '+' : '−'}₹{formatINR2(Math.abs(item.net))}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        isPositive ? 'bg-green-400' : 'bg-red-400'
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isOpen ? null : item.category_id)}
+                  aria-expanded={isOpen}
+                  className="w-full text-left space-y-1 rounded-md -mx-1 px-1 py-1 hover:bg-accent/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-medium text-foreground min-w-0">
+                      <ChevronDown
+                        className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform ${
+                          isOpen ? '' : '-rotate-90'
+                        }`}
+                      />
+                      <span className="truncate">{item.category_name}</span>
+                    </span>
+                    <span
+                      className={`font-semibold tabular-nums whitespace-nowrap ${
+                        isPositive ? 'text-green-400' : 'text-red-400'
                       }`}
-                      style={{ width: `${barWidth}%` }}
-                    />
+                    >
+                      {isPositive ? '+' : '−'}₹{formatINR2(Math.abs(item.net))}
+                    </span>
                   </div>
-                </div>
 
-                <div className="text-xs text-muted-foreground">
-                  {hasBoth ? (
-                    <>
-                      <span className="text-green-400">₹{formatINR2(item.income)} in</span>
-                      <span className="mx-1.5">·</span>
-                      <span className="text-red-400">₹{formatINR2(item.expense)} out</span>
-                    </>
-                  ) : (
-                    <>
-                      {item.count} transaction{item.count !== 1 ? 's' : ''}
-                    </>
-                  )}
-                </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          isPositive ? 'bg-green-400' : 'bg-red-400'
+                        }`}
+                        style={{ width: `${barWidth}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">
+                    {hasBoth ? (
+                      <>
+                        <span className="text-green-400">₹{formatINR2(item.income)} in</span>
+                        <span className="mx-1.5">·</span>
+                        <span className="text-red-400">₹{formatINR2(item.expense)} out</span>
+                      </>
+                    ) : (
+                      <>
+                        {item.count} transaction{item.count !== 1 ? 's' : ''}
+                      </>
+                    )}
+                  </div>
+                </button>
+
+                {isOpen && (
+                  <CategoryTransactionsInline
+                    categoryId={item.category_id}
+                    filters={{ ...range, transaction_type: drilldownType }}
+                  />
+                )}
               </div>
             )
           })}
@@ -303,39 +337,59 @@ export function CategoryBreakdown() {
         <div className="space-y-3">
           {breakdown.map((item) => {
             const percentage = total > 0 ? (item.total / total) * 100 : 0
+            const isOpen = expandedId === item.category_id
 
             return (
               <div key={item.category_id} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-foreground">
-                    {item.category_name}
-                  </span>
-                  <span className="text-muted-foreground">
-                    ₹{formatINR2(item.total)}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        mode === 'debit'
-                          ? 'bg-red-400'
-                          : mode === 'investments'
-                            ? 'bg-indigo-400'
-                            : 'bg-green-400'
-                      }`}
-                      style={{ width: `${percentage}%` }}
-                    />
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isOpen ? null : item.category_id)}
+                  aria-expanded={isOpen}
+                  className="w-full text-left space-y-1 rounded-md -mx-1 px-1 py-1 hover:bg-accent/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1.5 font-medium text-foreground min-w-0">
+                      <ChevronDown
+                        className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform ${
+                          isOpen ? '' : '-rotate-90'
+                        }`}
+                      />
+                      <span className="truncate">{item.category_name}</span>
+                    </span>
+                    <span className="text-muted-foreground">
+                      ₹{formatINR2(item.total)}
+                    </span>
                   </div>
-                  <span className="text-xs text-muted-foreground w-12 text-right">
-                    {percentage.toFixed(1)}%
-                  </span>
-                </div>
 
-                <div className="text-xs text-muted-foreground">
-                  {item.count} transaction{item.count !== 1 ? 's' : ''}
-                </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          mode === 'debit'
+                            ? 'bg-red-400'
+                            : mode === 'investments'
+                              ? 'bg-indigo-400'
+                              : 'bg-green-400'
+                        }`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground w-12 text-right">
+                      {percentage.toFixed(1)}%
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">
+                    {item.count} transaction{item.count !== 1 ? 's' : ''}
+                  </div>
+                </button>
+
+                {isOpen && (
+                  <CategoryTransactionsInline
+                    categoryId={item.category_id}
+                    filters={{ ...range, transaction_type: drilldownType }}
+                  />
+                )}
               </div>
             )
           })}

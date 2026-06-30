@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { AccountSelector } from '@/components/account-selector'
 import { fixedDepositApi, type FixedDeposit, type FixedDepositCreate } from '@/lib/api/fixed-deposits'
 import { getApiErrorMessage } from '@/lib/utils'
 
@@ -54,6 +55,7 @@ export function FixedDepositForm({ open, onOpenChange, onSuccess, deposit }: Fix
         principal_amount: deposit.principal_amount,
         tenure_days: deposit.tenure_days,
         start_date: deposit.start_date.split('T')[0],
+        bank_account_id: deposit.bank_account_id || undefined,
         notes: deposit.notes || undefined,
       })
       setRate(deposit.interest_rate)
@@ -124,6 +126,7 @@ export function FixedDepositForm({ open, onOpenChange, onSuccess, deposit }: Fix
         await fixedDepositApi.update(deposit.id, {
           interest_rate: rate || undefined,
           status: editStatus,
+          bank_account_id: formData.bank_account_id || undefined,
           notes: formData.notes,
         })
       } else {
@@ -155,6 +158,13 @@ export function FixedDepositForm({ open, onOpenChange, onSuccess, deposit }: Fix
               {error}
             </div>
           )}
+
+          <AccountSelector
+            id="fd-account"
+            label="Bank Account"
+            value={formData.bank_account_id}
+            onChange={(id) => setFormData({ ...formData, bank_account_id: id })}
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

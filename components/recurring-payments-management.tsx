@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Plus, Trash2, Check, Calendar, DollarSign, AlertCircle, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { apiClient } from "@/lib/api/client"
 import { useToast } from "@/components/ui/use-toast"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, getApiErrorMessage } from "@/lib/utils"
 
 type PaymentFrequency = "daily" | "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly"
 
@@ -56,6 +56,110 @@ const FREQUENCY_LABELS: Record<PaymentFrequency, string> = {
   yearly: "Yearly"
 }
 
+// ---------------------------------------------------------------------------
+// Optimistic Mark-Paid helpers (mirror the backend so the UI updates instantly
+// without a refetch). Reference: recurring_payment_service.py
+// ---------------------------------------------------------------------------
+
+type SummaryBucket = "overdue" | "upcoming_7_days" | "upcoming_30_days" | "none"
+
+const pad2 = (n: number) => String(n).padStart(2, "0")
+
+/** Last day (1-indexed month) — day 0 of the next month. */
+function lastDayOfMonth(year: number, month1: number): number {
+  return new Date(Date.UTC(year, month1, 0)).getUTCDate()
+}
+
+/** Add whole months, clamping the day to the target month's length (Jan 31 -> Feb 28/29). */
+function addMonthsClamped(
+  year: number,
+  month1: number,
+  day: number,
+  monthsToAdd: number
+): [number, number, number] {
+  const zeroBased = month1 - 1 + monthsToAdd
+  const newYear = year + Math.floor(zeroBased / 12)
+  const newMonth1 = (((zeroBased % 12) + 12) % 12) + 1
+  return [newYear, newMonth1, Math.min(day, lastDayOfMonth(newYear, newMonth1))]
+}
+
+/**
+ * Compute the next due date by advancing one frequency interval. Mirrors
+ * RecurringPaymentService.calculate_next_due_date. Parses/emits "YYYY-MM-DD"
+ * (tolerates an ISO datetime input by taking the date part).
+ */
+function nextDueDate(dateStr: string, frequency: PaymentFrequency): string {
+  const [y, m, d] = dateStr.split("T")[0].split("-").map(Number)
+  let ny = y
+  let nm = m
+  let nd = d
+
+  if (frequency === "daily" || frequency === "weekly" || frequency === "biweekly") {
+    const days = frequency === "daily" ? 1 : frequency === "weekly" ? 7 : 14
+    const dt = new Date(Date.UTC(y, m - 1, d + days))
+    ny = dt.getUTCFullYear()
+    nm = dt.getUTCMonth() + 1
+    nd = dt.getUTCDate()
+  } else if (frequency === "monthly") {
+    ;[ny, nm, nd] = addMonthsClamped(y, m, d, 1)
+  } else if (frequency === "quarterly") {
+    ;[ny, nm, nd] = addMonthsClamped(y, m, d, 3)
+  } else if (frequency === "yearly") {
+    ny = y + 1
+    nd = Math.min(d, lastDayOfMonth(ny, m)) // Feb 29 -> Feb 28 on non-leap years
+  }
+
+  return `${ny}-${pad2(nm)}-${pad2(nd)}`
+}
+
+/**
+ * Whole-day difference between the due date and "today" in IST, matching the
+ * backend's (next_due_date - today_ist()).days. Avoids new Date("YYYY-MM-DD")
+ * which parses as UTC midnight and produces an off-by-one against IST.
+ */
+function daysUntilDueIST(dateStr: string): number {
+  const [y, m, d] = dateStr.split("T")[0].split("-").map(Number)
+  const dueUTC = Date.UTC(y, m - 1, d)
+  const nowIST = new Date(Date.now() + 5.5 * 3600 * 1000)
+  const todayUTC = Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate())
+  return Math.floor((dueUTC - todayUTC) / 86400000)
+}
+
+/** Which summary bucket a days-until-due value falls into (matches get_summary). */
+function bucketOf(days: number | undefined | null): SummaryBucket {
+  if (days === undefined || days === null) return "none"
+  if (days < 0) return "overdue"
+  if (days <= 7) return "upcoming_7_days"
+  if (days <= 30) return "upcoming_30_days"
+  return "none"
+}
+
+/**
+ * Apply the bucket shift caused by marking a payment paid. Only the date-derived
+ * counts move; total_payments / active_payments / paused_payments / monthly_total
+ * are unchanged because mark-paid only advances next_due_date.
+ */
+function applySummaryDelta(
+  summary: RecurringPaymentSummary,
+  oldDays: number | undefined,
+  newDays: number | undefined
+): RecurringPaymentSummary {
+  const dec = bucketOf(oldDays)
+  const inc = bucketOf(newDays)
+  if (dec === inc) return summary
+
+  const next = { ...summary }
+  if (dec === "overdue") next.overdue = Math.max(0, next.overdue - 1)
+  else if (dec === "upcoming_7_days") next.upcoming_7_days = Math.max(0, next.upcoming_7_days - 1)
+  else if (dec === "upcoming_30_days") next.upcoming_30_days = Math.max(0, next.upcoming_30_days - 1)
+
+  if (inc === "overdue") next.overdue += 1
+  else if (inc === "upcoming_7_days") next.upcoming_7_days += 1
+  else if (inc === "upcoming_30_days") next.upcoming_30_days += 1
+
+  return next
+}
+
 export default function RecurringPaymentsManagement() {
   const [payments, setPayments] = useState<RecurringPayment[]>([])
   const [summary, setSummary] = useState<RecurringPaymentSummary | null>(null)
@@ -64,6 +168,10 @@ export default function RecurringPaymentsManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingPayment, setEditingPayment] = useState<RecurringPayment | null>(null)
   const [filter, setFilter] = useState<"all" | "upcoming" | "overdue">("all")
+  const [payingIds, setPayingIds] = useState<Set<string>>(() => new Set())
+  // Synchronous in-flight guard (refs update immediately, unlike state) so a
+  // rapid double-click can't apply the optimistic summary delta twice.
+  const inFlightRef = useRef<Set<string>>(new Set())
   const { toast } = useToast()
 
   // Form state
@@ -145,15 +253,68 @@ export default function RecurringPaymentsManagement() {
   }
 
   const handleMarkAsPaid = async (paymentId: string) => {
+    if (inFlightRef.current.has(paymentId)) return
+
+    const target = payments.find((p) => p.id === paymentId)
+    if (!target) return
+
+    inFlightRef.current.add(paymentId)
+
+    // Snapshots for rollback
+    const prevPayments = payments
+    const prevSummary = summary
+
+    const oldDays = target.days_until_due
+    const newDue = nextDueDate(target.next_due_date, target.frequency)
+    const newDays = daysUntilDueIST(newDue)
+
+    // Optimistic update: patch the row instantly, drop it from a filtered view
+    // when it no longer matches, and shift the affected summary buckets.
+    setPayingIds((prev) => new Set(prev).add(paymentId))
+    setPayments((prev) =>
+      prev
+        .map((p) =>
+          p.id === paymentId ? { ...p, next_due_date: newDue, days_until_due: newDays } : p
+        )
+        .filter((p) => {
+          if (p.id !== paymentId) return true
+          if (filter === "overdue") return newDays < 0
+          if (filter === "upcoming") return newDays <= 7
+          return true
+        })
+    )
+    setSummary((prev) => (prev ? applySummaryDelta(prev, oldDays, newDays) : prev))
+
     try {
-      await apiClient.post(`/api/v1/recurring-payments/${paymentId}/mark-paid`)
+      const updated = await apiClient.post<RecurringPayment>(
+        `/api/v1/recurring-payments/${paymentId}/mark-paid`
+      )
+      // Reconcile the (still-visible) row from the authoritative server response.
+      if (updated?.next_due_date) {
+        setPayments((prev) =>
+          prev.map((p) =>
+            p.id === paymentId
+              ? { ...p, ...updated, days_until_due: daysUntilDueIST(updated.next_due_date) }
+              : p
+          )
+        )
+      }
       toast({ title: "Payment marked as paid" })
-      fetchData()
-    } catch {
+    } catch (error) {
+      // Roll back the optimistic changes.
+      setPayments(prevPayments)
+      setSummary(prevSummary)
       toast({
         title: "Error",
-        description: "Failed to mark payment as paid",
+        description: getApiErrorMessage(error, "Failed to mark payment as paid"),
         variant: "destructive"
+      })
+    } finally {
+      inFlightRef.current.delete(paymentId)
+      setPayingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(paymentId)
+        return next
       })
     }
   }
@@ -470,7 +631,7 @@ export default function RecurringPaymentsManagement() {
                       size="sm"
                       variant="default"
                       onClick={() => handleMarkAsPaid(payment.id)}
-                      disabled={!payment.is_active}
+                      disabled={!payment.is_active || payingIds.has(payment.id)}
                     >
                       <Check className="h-4 w-4 mr-1" />
                       Mark Paid

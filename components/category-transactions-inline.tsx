@@ -75,7 +75,7 @@ export function CategoryTransactionsInline({ categoryId, filters }: CategoryTran
   }, [categoryId, start_date, end_date, transaction_type])
 
   return (
-    <div className="mt-2 ml-1 pl-3 border-l-2 border-border space-y-1.5">
+    <div className="mt-1 mb-3 ml-1 pl-3 border-l-2 border-border">
       {loading ? (
         <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
           <div className="animate-spin h-3.5 w-3.5 border-2 border-primary border-t-transparent rounded-full" />
@@ -86,24 +86,27 @@ export function CategoryTransactionsInline({ categoryId, filters }: CategoryTran
       ) : transactions.length === 0 ? (
         <p className="text-xs text-muted-foreground py-2">No transactions for this period.</p>
       ) : (
-        <>
+        <div className="divide-y divide-border/50">
           {transactions.map((tx) => {
             const isCredit = tx.transaction_type === 'credit'
             return (
-              <div key={tx.id} className="flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-muted-foreground tabular-nums whitespace-nowrap w-14 shrink-0">
+              <div
+                key={tx.id}
+                className="flex items-center justify-between gap-4 py-2 px-2 hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-baseline gap-3 min-w-0">
+                  <span className="text-[11px] text-muted-foreground tabular-nums whitespace-nowrap w-[4.75rem] shrink-0">
                     {formatDate(tx.date)}
                   </span>
-                  <span className="text-foreground truncate">
+                  <span className="text-sm text-foreground truncate">
                     {tx.description}
                     {tx.account_name ? (
-                      <span className="text-muted-foreground"> · {tx.account_name}</span>
+                      <span className="text-xs text-muted-foreground"> · {tx.account_name}</span>
                     ) : null}
                   </span>
                 </div>
                 <span
-                  className={`tabular-nums whitespace-nowrap font-medium ${
+                  className={`text-sm tabular-nums whitespace-nowrap font-semibold shrink-0 ${
                     isCredit ? 'text-green-400' : 'text-red-400'
                   }`}
                 >
@@ -113,16 +116,16 @@ export function CategoryTransactionsInline({ categoryId, filters }: CategoryTran
               </div>
             )
           })}
-          {total > transactions.length && (
-            <p className="text-[11px] text-muted-foreground pt-1">
-              Showing first {transactions.length} of {total}. Open{' '}
-              <a href="/transactions" className="underline hover:text-foreground">
-                Transactions
-              </a>{' '}
-              for the full list.
-            </p>
-          )}
-        </>
+        </div>
+      )}
+      {total > transactions.length && !loading && !error && (
+        <p className="text-[11px] text-muted-foreground pt-2 px-2">
+          Showing first {transactions.length} of {total}. Open{' '}
+          <a href="/transactions" className="underline hover:text-foreground">
+            Transactions
+          </a>{' '}
+          for the full list.
+        </p>
       )}
     </div>
   )

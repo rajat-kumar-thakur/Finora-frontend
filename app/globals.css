@@ -282,7 +282,8 @@
    PAGE-LOAD STAGGER (zero-markup on page-container children)
    =========================================== */
 .page-container > * {
-  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  min-width: 0; /* allow wide children (data tables) to scroll instead of overflowing */
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; /* backwards, NOT both: avoids a lingering transform that would break position:fixed modals rendered inside */
 }
 .page-container > *:nth-child(1) { animation-delay: 0ms; }
 .page-container > *:nth-child(2) { animation-delay: 40ms; }
@@ -292,7 +293,8 @@
 .page-container > *:nth-child(n + 6) { animation-delay: 200ms; }
 
 .stagger-children > * {
-  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  min-width: 0;
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
 .stagger-children > *:nth-child(2) { animation-delay: 40ms; }
@@ -318,7 +320,7 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  max-width: 80rem;
+  max-width: 96rem;
   margin-inline: auto;
 }
 @media (min-width: 1024px) {
@@ -1020,7 +1022,7 @@
 
 /* Page-load rise (opt-in single element) */
 @utility animate-rise {
-  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 /* Interactive card hover (border brighten, no scale) */

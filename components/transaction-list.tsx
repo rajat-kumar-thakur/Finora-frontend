@@ -1044,7 +1044,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                 <select
                   value={columnFilters.transaction_type}
                   onChange={(e) => setColumnFilters({ ...columnFilters, transaction_type: e.target.value })}
-                  className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                  className="w-full min-w-[4.5rem] px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
                 >
                   <option value="">All</option>
                   <option value="credit">Credit</option>
@@ -1058,7 +1058,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     step="0.01"
                     value={columnFilters.amount_min}
                     onChange={(e) => setColumnFilters({ ...columnFilters, amount_min: e.target.value })}
-                    className="w-1/2 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    className="w-16 min-w-0 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
                     placeholder="Min"
                   />
                   <input
@@ -1066,7 +1066,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     step="0.01"
                     value={columnFilters.amount_max}
                     onChange={(e) => setColumnFilters({ ...columnFilters, amount_max: e.target.value })}
-                    className="w-1/2 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    className="w-16 min-w-0 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
                     placeholder="Max"
                   />
                 </div>
@@ -1078,7 +1078,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     step="0.01"
                     value={columnFilters.balance_min}
                     onChange={(e) => setColumnFilters({ ...columnFilters, balance_min: e.target.value })}
-                    className="w-1/2 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    className="w-16 min-w-0 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
                     placeholder="Min"
                   />
                   <input
@@ -1086,7 +1086,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     step="0.01"
                     value={columnFilters.balance_max}
                     onChange={(e) => setColumnFilters({ ...columnFilters, balance_max: e.target.value })}
-                    className="w-1/2 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                    className="w-16 min-w-0 px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
                     placeholder="Max"
                   />
                 </div>
@@ -1168,7 +1168,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     <select
                       value={newTransaction.transaction_type}
                       onChange={(e) => setNewTransaction({ ...newTransaction, transaction_type: e.target.value })}
-                      className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
+                      className="w-full min-w-[4.5rem] px-2 py-1 text-xs border border-border rounded bg-background text-foreground"
                     >
                       <option value="debit">Debit</option>
                       <option value="credit">Credit</option>

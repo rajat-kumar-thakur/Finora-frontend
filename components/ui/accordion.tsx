@@ -18,7 +18,7 @@ export function AccordionItem({ title, children, defaultOpen = false }: Accordio
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full py-4 text-left font-medium text-foreground hover:text-primary transition-colors"
+        className="flex items-center justify-between w-full py-4 text-left text-sm font-medium text-foreground hover:text-primary transition-colors"
       >
         <span>{title}</span>
         <ChevronDown

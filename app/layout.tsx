@@ -1,8 +1,20 @@
-import { Inter } from "next/font/google"
+import type { Viewport } from "next"
+import { Schibsted_Grotesk, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 
-const inter = Inter({ subsets: ["latin"] })
+const fontSans = Schibsted_Grotesk({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-schibsted",
+  display: "swap",
+})
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-jetbrains",
+  display: "swap",
+})
 
 export const metadata = {
   title: "Finora - Smart Finance Tracker",
@@ -18,6 +30,16 @@ export const metadata = {
   },
 }
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f7f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#090e11" },
+  ],
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -25,9 +47,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

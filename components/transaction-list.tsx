@@ -10,6 +10,10 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { transactionApi, categoryApi, type Transaction, type TransactionFilter, type Category } from '@/lib/api'
 import { bankAccountApi, type BankAccount } from '@/lib/api/bank-accounts'
 import { TransferModal } from '@/components/transfer-modal'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { ReceiptText, Pencil, Trash2, ArrowUpRight, ArrowDownRight, ArrowLeftRight } from 'lucide-react'
 
 interface TransactionListProps {
   filters?: TransactionFilter
@@ -31,6 +35,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
   const [isAdding, setIsAdding] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
   const [filterDebouncing, setFilterDebouncing] = useState(false)
+  const [txToDelete, setTxToDelete] = useState<Transaction | null>(null)
   const [newTransaction, setNewTransaction] = useState({
     date: new Date().toISOString().split('T')[0],
     description: '',
@@ -394,45 +399,54 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+    return compact ? (
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    ) : (
+      <div className="space-y-2">
+        <Skeleton className="h-9 w-full" />
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
       </div>
     )
   }
 
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">{error}</p>
-      </div>
-    )
+    return <div className="alert-error">{error}</div>
   }
 
   if (transactions.length === 0 && !isAdding) {
     return (
-      <div className="text-center py-8">
-        <div className="text-4xl mb-3">📊</div>
-        <p className="text-sm text-muted-foreground">No transactions yet</p>
-        <p className="text-xs text-muted-foreground/70 mt-1">Upload a statement or add manually</p>
-        {!compact && (
-          <div className="mt-4 flex items-center justify-center gap-2">
-            <button
-              onClick={() => setIsAdding(true)}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
-            >
-              Add Transaction
-            </button>
-            <button
-              onClick={() => setTransferOpen(true)}
-              disabled={accounts.length < 2}
-              className="px-4 py-2 border border-border text-foreground rounded-md text-sm hover:bg-accent disabled:opacity-50"
-              title={accounts.length < 2 ? 'Add a second account first' : undefined}
-            >
-              ↔ Transfer
-            </button>
-          </div>
-        )}
+      <>
+        <EmptyState
+          icon={ReceiptText}
+          title="No transactions yet"
+          body="Upload a statement or add one manually."
+        >
+          {!compact && (
+            <>
+              <button
+                onClick={() => setIsAdding(true)}
+                className="btn-primary"
+              >
+                Add Transaction
+              </button>
+              <button
+                onClick={() => setTransferOpen(true)}
+                disabled={accounts.length < 2}
+                className="btn-outline"
+                title={accounts.length < 2 ? 'Add a second account first' : undefined}
+              >
+                <ArrowLeftRight className="h-4 w-4" />
+                Transfer
+              </button>
+            </>
+          )}
+        </EmptyState>
         {transferOpen && (
           <TransferModal
             onClose={() => setTransferOpen(false)}
@@ -443,7 +457,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
             }}
           />
         )}
-      </div>
+      </>
     )
   }
 
@@ -460,15 +474,13 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
             >
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                  tx.transaction_type === 'credit' ? 'bg-green-500/10' : 'bg-red-500/10'
+                  tx.transaction_type === 'credit' ? 'bg-positive/10' : 'bg-negative/10'
                 }`}>
-                  <svg className={`w-4 h-4 ${tx.transaction_type === 'credit' ? 'text-green-500' : 'text-red-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {tx.transaction_type === 'credit' ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
-                    )}
-                  </svg>
+                  {tx.transaction_type === 'credit' ? (
+                    <ArrowUpRight className="w-4 h-4 text-positive" />
+                  ) : (
+                    <ArrowDownRight className="w-4 h-4 text-negative" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-xs truncate text-foreground">{tx.description}</div>
@@ -482,8 +494,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                   </div>
                 </div>
               </div>
-              <div className={`text-xs font-semibold flex-shrink-0 ${
-                tx.transaction_type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              <div className={`text-xs font-semibold font-numeric flex-shrink-0 ${
+                tx.transaction_type === 'credit' ? 'text-positive' : 'text-negative'
               }`}>
                 {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </div>
@@ -501,7 +513,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
     if (isEditing) {
       return (
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Date</label>
@@ -607,19 +619,17 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
     }
 
     return (
-      <div className="bg-card border border-border rounded-xl p-4 hover:bg-accent/30 transition-colors">
+      <div className="card-base p-4 hover:bg-accent/30 transition-colors">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-              tx.transaction_type === 'credit' ? 'bg-green-500/10' : 'bg-red-500/10'
+              tx.transaction_type === 'credit' ? 'bg-positive/10' : 'bg-negative/10'
             }`}>
-              <svg className={`w-5 h-5 ${tx.transaction_type === 'credit' ? 'text-green-500' : 'text-red-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {tx.transaction_type === 'credit' ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
-                )}
-              </svg>
+              {tx.transaction_type === 'credit' ? (
+                <ArrowUpRight className="w-5 h-5 text-positive" />
+              ) : (
+                <ArrowDownRight className="w-5 h-5 text-negative" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-medium text-sm text-foreground truncate">{tx.description}</div>
@@ -633,8 +643,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                   </span>
                 )}
                 {tx.is_transfer && (
-                  <span className="text-[9px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500">
-                    ↔ Transfer
+                  <span className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-chart-1/10 text-chart-1">
+                    <ArrowLeftRight className="h-3 w-3" /> Transfer
                   </span>
                 )}
                 {category && (
@@ -673,13 +683,13 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
             </div>
           </div>
           <div className="text-right flex-shrink-0">
-            <div className={`text-sm font-semibold ${
-              tx.transaction_type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+            <div className={`text-sm font-semibold font-numeric ${
+              tx.transaction_type === 'credit' ? 'text-positive' : 'text-negative'
             }`}>
               {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
             {tx.balance && (
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-xs text-muted-foreground mt-0.5 font-numeric">
                 Bal: ₹{tx.balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </div>
             )}
@@ -688,24 +698,16 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
           <button
             onClick={() => startEdit(tx)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <Pencil className="w-4 h-4" />
             Edit
           </button>
           <button
-            onClick={() => {
-              if (confirm(`Delete transaction: ${tx.description}?`)) {
-                deleteTransaction(tx.id)
-              }
-            }}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            onClick={() => setTxToDelete(tx)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            <Trash2 className="w-4 h-4" />
             Delete
           </button>
         </div>
@@ -715,7 +717,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
   // Mobile Add Transaction Form
   const MobileAddForm = () => (
-    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-3">
+    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
       <div className="text-sm font-medium text-foreground">Add New Transaction</div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -831,17 +833,18 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsAdding(!isAdding)}
-            className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90"
+            className="btn-primary flex-1"
           >
             + Add Transaction
           </button>
           <button
             onClick={() => setTransferOpen(true)}
             disabled={accounts.length < 2}
-            className="px-4 py-2.5 border border-border text-foreground text-sm font-medium rounded-lg hover:bg-accent disabled:opacity-50"
+            className="btn-outline"
             title={accounts.length < 2 ? 'Add a second account to enable transfers' : 'Transfer between accounts'}
           >
-            ↔ Transfer
+            <ArrowLeftRight className="h-4 w-4" />
+            Transfer
           </button>
         </div>
 
@@ -849,7 +852,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         {isAdding && <MobileAddForm />}
 
         {/* Mobile Filters */}
-        <div className="bg-card border border-border rounded-xl p-3 space-y-2">
+        <div className="card-base p-3 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-foreground">Filters</span>
             <button
@@ -874,13 +877,13 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
               type="text"
               value={columnFilters.description}
               onChange={(e) => setColumnFilters({ ...columnFilters, description: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+              className="input-sm"
               placeholder="Search..."
             />
             <select
               value={columnFilters.transaction_type}
               onChange={(e) => setColumnFilters({ ...columnFilters, transaction_type: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+              className="input-sm"
             >
               <option value="">All Types</option>
               <option value="credit">Credit</option>
@@ -890,7 +893,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
           <select
             value={columnFilters.category_id}
             onChange={(e) => setColumnFilters({ ...columnFilters, category_id: e.target.value })}
-            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+            className="input-sm"
           >
             <option value="">All Categories</option>
             {categories.map(cat => (
@@ -902,7 +905,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
           <select
             value={columnFilters.account_id}
             onChange={(e) => setColumnFilters({ ...columnFilters, account_id: e.target.value })}
-            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground"
+            className="input-sm"
             title="Filter by account"
           >
             <option value="">All Accounts</option>
@@ -936,7 +939,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                 >
                   Previous
                 </button>
-                <span className="text-sm font-medium text-foreground px-3">
+                <span className="text-sm font-medium text-foreground px-3 font-numeric">
                   {pagination.page} / {pagination.total_pages}
                 </span>
                 <button
@@ -958,10 +961,11 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
           <button
             onClick={() => setTransferOpen(true)}
             disabled={accounts.length < 2}
-            className="px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-card hover:bg-accent disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-card hover:bg-accent disabled:opacity-50 transition-colors"
             title={accounts.length < 2 ? 'Add a second account to enable transfers' : 'Transfer between accounts'}
           >
-            ↔ Transfer
+            <ArrowLeftRight className="h-3.5 w-3.5" />
+            Transfer
           </button>
         </div>
       )}
@@ -969,16 +973,16 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
       {/* Desktop Table View */}
       <div className="hidden lg:block overflow-x-auto rounded-lg border border-border bg-card">
         <table className="w-full text-sm">
-          <thead className="bg-accent/30 border-b border-border">
+          <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="text-left p-3 font-semibold text-foreground">Date</th>
-              <th className="text-left p-3 font-semibold text-foreground">Description</th>
-              <th className="text-left p-3 font-semibold text-foreground">Account</th>
-              <th className="text-left p-3 font-semibold text-foreground">Category</th>
-              <th className="text-right p-3 font-semibold text-foreground">Type</th>
-              <th className="text-right p-3 font-semibold text-foreground">Amount</th>
-              <th className="text-right p-3 font-semibold text-foreground">Balance</th>
-              <th className="text-center p-3 font-semibold text-foreground">Actions</th>
+              <th className="text-left p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Date</th>
+              <th className="text-left p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Description</th>
+              <th className="text-left p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Account</th>
+              <th className="text-left p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Category</th>
+              <th className="text-right p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Type</th>
+              <th className="text-right p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Amount</th>
+              <th className="text-right p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Balance</th>
+              <th className="text-center p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Actions</th>
             </tr>
             {/* Filter Row */}
             <tr className="bg-accent/20">
@@ -1001,8 +1005,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     placeholder="Search..."
                   />
                   {filterDebouncing && columnFilters.description && (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                      <div className="animate-spin h-3 w-3 border-2 border-primary border-t-transparent rounded-full" />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 text-primary">
+                      <span className="spinner-sm" />
                     </div>
                   )}
                 </div>
@@ -1321,32 +1325,32 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
               ) : (
                 // View Mode
                 <tr key={tx.id} className="hover:bg-accent/30 transition-colors">
-                  <td className="p-3 text-foreground whitespace-nowrap">
-                    {new Date(tx.date).toLocaleDateString('en-IN', { 
-                      day: '2-digit', 
-                      month: 'short', 
-                      year: 'numeric' 
+                  <td className="px-3 py-2 text-foreground whitespace-nowrap font-numeric">
+                    {new Date(tx.date).toLocaleDateString('en-IN', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
                     })}
                   </td>
-                  <td className="p-3 text-foreground">
+                  <td className="px-3 py-2 text-foreground">
                     <div className="max-w-[300px] truncate whitespace-nowrap" style={{ direction: 'rtl', textAlign: 'left' }} title={tx.description}>
                       {tx.description}
                     </div>
                   </td>
-                  <td className="p-3 whitespace-nowrap text-xs text-muted-foreground" title={tx.account_name ?? undefined}>
+                  <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground" title={tx.account_name ?? undefined}>
                     <div className="flex items-center gap-1">
                       <span>{tx.account_name ?? '—'}</span>
                       {tx.is_transfer && (
                         <span
-                          className="text-[9px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500"
+                          className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-chart-1/10 text-chart-1"
                           title="Inter-account transfer"
                         >
-                          ↔ Transfer
+                          <ArrowLeftRight className="h-3 w-3" /> Transfer
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="p-3 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-nowrap">
                     {editingCategoryId === tx.id ? (
                       <select
                         value={tx.category_id || ''}
@@ -1371,46 +1375,40 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                       </button>
                     )}
                   </td>
-                  <td className="p-3 text-right whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                      tx.transaction_type === 'credit' 
-                        ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
-                        : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2 py-1 rounded text-[11px] font-medium font-numeric ${
+                      tx.transaction_type === 'credit'
+                        ? 'bg-positive/10 text-positive'
+                        : 'bg-negative/10 text-negative'
                     }`}>
                       {tx.transaction_type === 'credit' ? 'CR' : 'DR'}
                     </span>
                   </td>
-                  <td className={`p-3 text-right font-semibold whitespace-nowrap ${
-                    tx.transaction_type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  <td className={`px-3 py-2 text-right font-semibold whitespace-nowrap font-numeric ${
+                    tx.transaction_type === 'credit' ? 'text-positive' : 'text-negative'
                   }`}>
                     {tx.transaction_type === 'credit' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </td>
-                  <td className="p-3 text-right text-foreground font-medium whitespace-nowrap">
+                  <td className="px-3 py-2 text-right text-foreground font-medium whitespace-nowrap font-numeric">
                     {tx.balance ? `₹${tx.balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
                   </td>
-                  <td className="p-3 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-nowrap">
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => startEdit(tx)}
                         className="p-1 hover:bg-accent rounded transition-colors"
                         title="Edit"
+                        aria-label="Edit"
                       >
-                        <svg className="w-4 h-4 text-muted-foreground hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
+                        <Pencil className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                       </button>
                       <button
-                        onClick={() => {
-                          if (confirm(`Delete transaction: ${tx.description}?`)) {
-                            deleteTransaction(tx.id)
-                          }
-                        }}
+                        onClick={() => setTxToDelete(tx)}
                         className="p-1 hover:bg-accent rounded transition-colors"
                         title="Delete"
+                        aria-label="Delete"
                       >
-                        <svg className="w-4 h-4 text-muted-foreground hover:text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                        <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                       </button>
                     </div>
                   </td>
@@ -1437,7 +1435,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
               >
                 Previous
               </button>
-              <span className="text-xs font-medium text-foreground">
+              <span className="text-xs font-medium text-foreground font-numeric">
                 Page {pagination.page} of {pagination.total_pages}
               </span>
               <button
@@ -1463,6 +1461,14 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!txToDelete}
+        onOpenChange={(o) => { if (!o) setTxToDelete(null) }}
+        title="Delete transaction?"
+        description={txToDelete ? `This will permanently delete "${txToDelete.description}".` : undefined}
+        onConfirm={() => { if (txToDelete) deleteTransaction(txToDelete.id) }}
+      />
     </div>
   )
 }

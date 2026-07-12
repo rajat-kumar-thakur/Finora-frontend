@@ -84,7 +84,7 @@ export function AccountSelector({
         value={value ?? (includeAllOption ? '' : '')}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled || loading || (!includeAllOption && accounts.length === 0)}
-        className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground disabled:opacity-50"
+        className="w-full px-3 h-9 border border-border rounded-md bg-card text-foreground text-sm disabled:opacity-50"
         title={label ?? 'Select bank account'}
       >
         {includeAllOption && <option value="">All Accounts</option>}

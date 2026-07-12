@@ -7,6 +7,7 @@
  */
 
 import { useState } from 'react'
+import { Image as ImageIcon, X, CheckCircle2, Info, TriangleAlert } from 'lucide-react'
 import { uploadApi, type UploadImageResponse } from '@/lib/api'
 import { AccountSelector } from '@/components/account-selector'
 
@@ -103,7 +104,9 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
           </div>
 
           <div className="text-center space-y-4">
-          <div className="text-5xl">🖼️</div>
+          <div className="icon-box-lg mx-auto">
+            <ImageIcon className="h-6 w-6" />
+          </div>
 
           <div>
             <h3 className="text-lg font-semibold text-foreground">
@@ -126,9 +129,10 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
               <button
                 type="button"
                 onClick={clearSelection}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full text-xs font-bold hover:bg-destructive/90 transition-colors"
+                aria-label="Remove image"
+                className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-background/80 text-foreground hover:text-destructive transition-colors"
               >
-                X
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
@@ -136,7 +140,7 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
           <div className="flex items-center justify-center gap-4">
             <label
               htmlFor="image-upload"
-              className="cursor-pointer inline-flex items-center px-5 py-2.5 border border-border rounded-lg shadow-sm text-sm font-medium text-foreground bg-accent hover:bg-accent/80 transition-colors"
+              className="btn-outline cursor-pointer"
             >
               Choose Image
               <input
@@ -153,7 +157,7 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
                 type="button"
                 onClick={handleUpload}
                 disabled={uploading || !accountId}
-                className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="btn-primary"
                 title={!accountId ? 'Select a bank account first' : undefined}
               >
                 {uploading ? 'Uploading...' : 'Upload & Extract'}
@@ -173,8 +177,8 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
       {/* Upload Progress */}
       {uploading && (
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+          <div className="flex items-center gap-3 text-primary">
+            <span className="spinner-sm" />
             <p className="text-sm text-foreground font-medium">
               Processing image and extracting transactions...
             </p>
@@ -185,27 +189,27 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
       {/* Success Result */}
       {result && !uploading && (
         <div className={`border rounded-lg p-4 ${
-          result.error_count > 0 ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-green-500/10 border-green-500/20'
+          result.error_count > 0 ? 'bg-warning/10 border-warning/20' : 'bg-positive/10 border-positive/20'
         }`}>
           <div className="space-y-3">
             <p className={`font-semibold text-base ${
-              result.error_count > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'
+              result.error_count > 0 ? 'text-warning' : 'text-positive'
             }`}>
               {result.message}
             </p>
 
             <div className="text-sm space-y-2">
-              <p className="text-foreground">
-                Successfully imported: <span className="font-semibold">{result.success_count}</span> transactions
+              <p className="flex items-center gap-1.5 text-foreground">
+                <CheckCircle2 className="h-4 w-4 text-positive" /> Successfully imported: <span className="font-semibold font-numeric">{result.success_count}</span> transactions
               </p>
               {result.duplicate_count > 0 && (
-                <p className="text-primary">
-                  Duplicates skipped: <span className="font-semibold">{result.duplicate_count}</span>
+                <p className="flex items-center gap-1.5 text-primary">
+                  <Info className="h-4 w-4" /> Duplicates skipped: <span className="font-semibold font-numeric">{result.duplicate_count}</span>
                 </p>
               )}
               {result.error_count > 0 && (
-                <p className="text-yellow-600 dark:text-yellow-400">
-                  Errors: <span className="font-semibold">{result.error_count}</span>
+                <p className="flex items-center gap-1.5 text-warning">
+                  <TriangleAlert className="h-4 w-4" /> Errors: <span className="font-semibold font-numeric">{result.error_count}</span>
                 </p>
               )}
             </div>
@@ -233,9 +237,7 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
 
       {/* Error */}
       {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-          <p className="text-sm text-destructive font-medium">{error}</p>
-        </div>
+        <div className="alert-error">{error}</div>
       )}
 
       {/* Limitations Notice */}

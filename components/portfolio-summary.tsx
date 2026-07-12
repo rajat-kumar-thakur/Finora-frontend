@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react'
 import { investmentApi, type PortfolioSummary, type TypeReturns } from '@/lib/api/investments'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { formatCurrency } from '@/lib/utils'
+import { CHART_SERIES, chartTooltipContentStyle } from '@/lib/chart-theme'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 
 interface PortfolioSummaryProps {
   refreshTrigger: number
 }
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
 
 export function PortfolioSummaryView({ refreshTrigger }: PortfolioSummaryProps) {
   const [summary, setSummary] = useState<PortfolioSummary | null>(null)
@@ -30,7 +30,28 @@ export function PortfolioSummaryView({ refreshTrigger }: PortfolioSummaryProps) 
     fetchSummary()
   }, [refreshTrigger])
 
-  if (loading) return <div>Loading summary...</div>
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="md:col-span-1 lg:col-span-4">
+          <CardHeader><Skeleton className="h-5 w-40" /></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-14" />
+              <Skeleton className="h-14" />
+              <Skeleton className="h-14" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="md:col-span-1 lg:col-span-3">
+          <CardHeader><Skeleton className="h-5 w-32" /></CardHeader>
+          <CardContent className="flex items-center justify-center h-[200px]">
+            <Skeleton className="h-40 w-40 rounded-full" />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
   if (!summary || summary.total_value === 0) {
     return (
       <Card>
@@ -58,12 +79,12 @@ export function PortfolioSummaryView({ refreshTrigger }: PortfolioSummaryProps) 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Total Value</p>
-                <p className="text-2xl font-bold">{formatCurrency(summary.total_value)}</p>
+                <p className="font-numeric text-2xl font-bold">{formatCurrency(summary.total_value)}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Total Return</p>
-                <p className={`text-2xl font-bold ${summary.total_return >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrency(summary.total_return)}
+                <p className={`font-numeric text-2xl font-bold ${summary.total_return >= 0 ? 'text-positive' : 'text-negative'}`}>
+                  {summary.total_return >= 0 ? '+' : ''}{formatCurrency(summary.total_return)}
                   <span className="text-sm ml-2 font-normal">
                     ({summary.return_percentage.toFixed(2)}%)
                   </span>
@@ -71,7 +92,7 @@ export function PortfolioSummaryView({ refreshTrigger }: PortfolioSummaryProps) 
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Total Cost</p>
-                <p className="text-xl">{formatCurrency(summary.total_cost)}</p>
+                <p className="font-numeric text-xl">{formatCurrency(summary.total_cost)}</p>
               </div>
             </div>
           </CardContent>
@@ -82,7 +103,7 @@ export function PortfolioSummaryView({ refreshTrigger }: PortfolioSummaryProps) 
             <CardTitle>Asset Allocation</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px]">
+            <div className="h-[200px]" role="img" aria-label="Asset allocation donut chart">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -92,14 +113,23 @@ export function PortfolioSummaryView({ refreshTrigger }: PortfolioSummaryProps) 
                     innerRadius={60}
                     outerRadius={80}
                     paddingAngle={5}
+                    cornerRadius={4}
                     dataKey="value"
                   >
                     {allocationData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={CHART_SERIES[index % CHART_SERIES.length]}
+                        stroke="var(--card)"
+                        strokeWidth={2}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend />
+                  <Tooltip
+                    formatter={(value) => formatCurrency(value as number)}
+                    contentStyle={chartTooltipContentStyle}
+                  />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -147,16 +177,16 @@ function ReturnCard({ title, data }: { title: string; data?: TypeReturns }) {
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1">
             <p className="text-xs font-medium text-muted-foreground">Value</p>
-            <p className="text-lg font-semibold">{formatCurrency(data.value)}</p>
+            <p className="font-numeric text-lg font-semibold">{formatCurrency(data.value)}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs font-medium text-muted-foreground">Cost</p>
-            <p className="text-lg font-semibold">{formatCurrency(data.cost)}</p>
+            <p className="font-numeric text-lg font-semibold">{formatCurrency(data.cost)}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs font-medium text-muted-foreground">Return</p>
-            <p className={`text-lg font-semibold ${data.return >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(data.return)}
+            <p className={`font-numeric text-lg font-semibold ${data.return >= 0 ? 'text-positive' : 'text-negative'}`}>
+              {data.return >= 0 ? '+' : ''}{formatCurrency(data.return)}
               <span className="text-xs ml-1 font-normal">
                 ({data.return_percentage.toFixed(2)}%)
               </span>

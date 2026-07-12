@@ -7,8 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, PiggyBank } from 'lucide-react'
 import { FixedDepositForm } from './fixed-deposit-form'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { formatCurrency } from '@/lib/utils'
 
 interface FixedDepositListProps {
@@ -23,6 +26,7 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingDeposit, setEditingDeposit] = useState<FixedDeposit | undefined>(undefined)
   const [activeTab, setActiveTab] = useState<'fd' | 'rd'>('fd')
+  const [confirmTarget, setConfirmTarget] = useState<FixedDeposit | null>(null)
 
   const fetchDeposits = async () => {
     try {
@@ -49,14 +53,12 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this deposit?')) {
-      try {
-        await fixedDepositApi.delete(id)
-        fetchDeposits()
-        onUpdate()
-      } catch {
-        // Silently fail
-      }
+    try {
+      await fixedDepositApi.delete(id)
+      fetchDeposits()
+      onUpdate()
+    } catch {
+      // Silently fail
     }
   }
 
@@ -89,7 +91,33 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
     return `${days}D`
   }
 
-  if (loading) return <div>Loading deposits...</div>
+  if (loading) {
+    return (
+      <>
+        <div className="grid gap-4 md:grid-cols-3 mb-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="stat-card">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-8 w-32 mt-3" />
+            </div>
+          ))}
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Deposits</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-9 w-full" />
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </>
+    )
+  }
 
   const fds = (deposits || []).filter(d => d.deposit_type === 'FD')
   const rds = (deposits || []).filter(d => d.deposit_type === 'RD')
@@ -101,7 +129,7 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
           <TableHead>Bank</TableHead>
           <TableHead className="text-right">{isRD ? 'Monthly Amt' : 'Principal'}</TableHead>
           <TableHead className="text-right">Rate</TableHead>
-          <TableHead>Tenure</TableHead>
+          <TableHead className="text-right">Tenure</TableHead>
           <TableHead>Start</TableHead>
           <TableHead>Maturity</TableHead>
           <TableHead className="text-right">Maturity Amt</TableHead>
@@ -120,13 +148,13 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
           return (
             <TableRow key={dep.id}>
               <TableCell className="font-medium">{dep.bank_name}</TableCell>
-              <TableCell className="text-right">{formatCurrency(dep.principal_amount)}</TableCell>
-              <TableCell className="text-right">{dep.interest_rate}%</TableCell>
-              <TableCell>{formatTenure(dep.tenure_days)}</TableCell>
-              <TableCell>{new Date(dep.start_date).toLocaleDateString('en-IN')}</TableCell>
-              <TableCell>{new Date(dep.maturity_date).toLocaleDateString('en-IN')}</TableCell>
-              <TableCell className="text-right font-bold">{formatCurrency(dep.maturity_amount)}</TableCell>
-              <TableCell className="text-right text-green-600">
+              <TableCell className="text-right font-numeric whitespace-nowrap">{formatCurrency(dep.principal_amount)}</TableCell>
+              <TableCell className="text-right font-numeric whitespace-nowrap">{dep.interest_rate}%</TableCell>
+              <TableCell className="text-right font-numeric whitespace-nowrap">{formatTenure(dep.tenure_days)}</TableCell>
+              <TableCell className="font-numeric whitespace-nowrap">{new Date(dep.start_date).toLocaleDateString('en-IN')}</TableCell>
+              <TableCell className="font-numeric whitespace-nowrap">{new Date(dep.maturity_date).toLocaleDateString('en-IN')}</TableCell>
+              <TableCell className="text-right font-bold font-numeric whitespace-nowrap">{formatCurrency(dep.maturity_amount)}</TableCell>
+              <TableCell className="text-right font-numeric whitespace-nowrap text-positive">
                 {formatCurrency(interest)}
               </TableCell>
               <TableCell>
@@ -136,11 +164,11 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
               </TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(dep)}>
+                  <Button variant="ghost" size="icon" aria-label="Edit deposit" onClick={() => handleEdit(dep)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(dep.id)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                  <Button variant="ghost" size="icon" aria-label="Delete deposit" onClick={() => setConfirmTarget(dep)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
               </TableCell>
@@ -149,8 +177,8 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
         })}
         {depositList.length === 0 && (
           <TableRow>
-            <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
-              {emptyMessage}
+            <TableCell colSpan={10}>
+              <EmptyState icon={PiggyBank} title={emptyMessage} />
             </TableCell>
           </TableRow>
         )}
@@ -163,30 +191,18 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
       {/* Summary Cards */}
       {summary && (summary.total_invested > 0) && (
         <div className="grid gap-4 md:grid-cols-3 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Invested</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(summary.total_invested)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Maturity Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(summary.total_maturity_value)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Interest Earned</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(summary.total_interest_earned)}</div>
-            </CardContent>
-          </Card>
+          <div className="stat-card">
+            <div className="stat-label">Total Invested</div>
+            <div className="stat-value font-numeric">{formatCurrency(summary.total_invested)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Maturity Value</div>
+            <div className="stat-value font-numeric">{formatCurrency(summary.total_maturity_value)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Interest Earned</div>
+            <div className="stat-value font-numeric text-positive">{formatCurrency(summary.total_interest_earned)}</div>
+          </div>
         </div>
       )}
 
@@ -223,6 +239,14 @@ export function FixedDepositList({ onUpdate, refreshTrigger }: FixedDepositListP
           onOpenChange={setIsFormOpen}
           onSuccess={handleSuccess}
           deposit={editingDeposit}
+        />
+
+        <ConfirmDialog
+          open={!!confirmTarget}
+          onOpenChange={(o) => { if (!o) setConfirmTarget(null) }}
+          title="Delete deposit?"
+          description="This will permanently remove this deposit from your records."
+          onConfirm={() => { if (confirmTarget) handleDelete(confirmTarget.id) }}
         />
       </Card>
     </>

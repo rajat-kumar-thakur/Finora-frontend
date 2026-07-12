@@ -189,7 +189,7 @@ export default function HelpPage() {
               placeholder="Search for help..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow"
+              className="input-base pl-12"
             />
           </div>
         </div>
@@ -198,8 +198,8 @@ export default function HelpPage() {
       {/* Quick Start Guide */}
       <section className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-green-500/10">
-            <Zap className="h-5 w-5 text-green-500" />
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Zap className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-foreground">Quick Start Guide</h2>
@@ -211,7 +211,7 @@ export default function HelpPage() {
           {quickStartSteps.map((item) => (
             <div
               key={item.step}
-              className="relative p-6 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-200 group"
+              className="relative p-6 rounded-xl border border-border bg-card hover:border-primary/50 transition-all duration-200 group"
             >
               <div className="absolute top-4 right-4 text-4xl font-bold text-muted-foreground/20 group-hover:text-primary/20 transition-colors">
                 {item.step}
@@ -231,8 +231,8 @@ export default function HelpPage() {
       {/* Features Grid */}
       <section className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-blue-500/10">
-            <Lightbulb className="h-5 w-5 text-blue-500" />
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Lightbulb className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-foreground">Features Overview</h2>
@@ -245,7 +245,7 @@ export default function HelpPage() {
             <a
               key={feature.title}
               href={feature.link}
-              className="p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-lg transition-all duration-200 group"
+              className="p-5 rounded-xl border border-border bg-card hover:border-primary/50 transition-all duration-200 group"
             >
               <div className="flex items-start gap-4">
                 <div className="p-2.5 rounded-lg bg-accent group-hover:bg-primary/10 transition-colors">
@@ -269,8 +269,8 @@ export default function HelpPage() {
       {/* FAQ Section */}
       <section className="mb-12">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-purple-500/10">
-            <MessageCircle className="h-5 w-5 text-purple-500" />
+          <div className="p-2 rounded-lg bg-primary/10">
+            <MessageCircle className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-foreground">Frequently Asked Questions</h2>
@@ -309,8 +309,8 @@ export default function HelpPage() {
         {/* Keyboard Shortcuts */}
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-orange-500/10">
-              <Keyboard className="h-5 w-5 text-orange-500" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Keyboard className="h-5 w-5 text-primary" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-foreground">Keyboard Shortcuts</h2>
@@ -330,7 +330,7 @@ export default function HelpPage() {
                     {shortcut.keys.map((key, keyIndex) => (
                       <kbd
                         key={keyIndex}
-                        className="px-2 py-1 text-xs font-mono rounded bg-accent border border-border text-foreground"
+                        className="kbd-chip"
                       >
                         {key}
                       </kbd>
@@ -345,8 +345,8 @@ export default function HelpPage() {
         {/* Security & Privacy */}
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-green-500/10">
-              <Shield className="h-5 w-5 text-green-500" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Shield className="h-5 w-5 text-primary" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-foreground">Security & Privacy</h2>
@@ -357,28 +357,28 @@ export default function HelpPage() {
           <div className="rounded-xl border border-border bg-card p-6">
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
-                <div className="mt-1 h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                 <div>
                   <span className="font-medium text-foreground">End-to-end encryption</span>
                   <p className="text-sm text-muted-foreground">All data is encrypted in transit and at rest</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <div className="mt-1 h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                 <div>
                   <span className="font-medium text-foreground">No credential storage</span>
                   <p className="text-sm text-muted-foreground">We never store or access your bank login details</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <div className="mt-1 h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                 <div>
                   <span className="font-medium text-foreground">In-memory processing</span>
                   <p className="text-sm text-muted-foreground">PDF files are processed and immediately deleted</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <div className="mt-1 h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                 <div>
                   <span className="font-medium text-foreground">User-controlled data</span>
                   <p className="text-sm text-muted-foreground">Delete your account and all data anytime</p>

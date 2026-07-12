@@ -16,6 +16,10 @@ import {
 import { INDIAN_BANKS } from '@/lib/constants/indian-banks'
 import { formatCurrency } from '@/lib/utils'
 import { TransferModal } from '@/components/transfer-modal'
+import { ArrowLeftRight, Plus, Landmark } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 type ModalMode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; account: BankAccount }
 
@@ -26,6 +30,7 @@ export function AccountsPage() {
   const [modal, setModal] = useState<ModalMode>({ kind: 'closed' })
   const [transferOpen, setTransferOpen] = useState(false)
   const [actioningId, setActioningId] = useState<string | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<BankAccount | null>(null)
 
   useEffect(() => {
     void load()
@@ -57,7 +62,6 @@ export function AccountsPage() {
   }
 
   const handleDelete = async (acc: BankAccount) => {
-    if (!confirm(`Delete account "${acc.name}"? This cannot be undone.`)) return
     setActioningId(acc.id)
     setError(null)
     try {
@@ -85,45 +89,50 @@ export function AccountsPage() {
           <button
             onClick={() => setTransferOpen(true)}
             disabled={accounts.length < 2}
-            className="px-4 py-2 border border-border text-foreground rounded-md text-sm font-medium hover:bg-accent disabled:opacity-50"
+            className="btn-outline"
             title={accounts.length < 2 ? 'Add a second account to enable transfers' : undefined}
           >
-            ↔ Transfer
+            <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
+            Transfer
           </button>
           <button
             onClick={() => setModal({ kind: 'create' })}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+            className="btn-primary"
           >
-            + Add Account
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Add Account
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
+        <div className="alert-error">{error}</div>
       )}
 
       {/* Total */}
-      <div className="bg-card border border-border rounded-xl p-4">
-        <div className="text-xs text-muted-foreground">Cumulative balance across all accounts</div>
-        <div className="text-2xl font-bold text-foreground mt-1">{formatCurrency(totalBalance)}</div>
-        <div className="text-xs text-muted-foreground mt-1">{accounts.length} account{accounts.length === 1 ? '' : 's'}</div>
+      <div className="stat-card">
+        <div className="stat-label">Cumulative balance across all accounts</div>
+        <div className="stat-value font-numeric">{formatCurrency(totalBalance)}</div>
+        <div className="text-xs text-muted-foreground mt-1 font-numeric">{accounts.length} account{accounts.length === 1 ? '' : 's'}</div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="grid gap-3 md:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
         </div>
       ) : accounts.length === 0 ? (
-        <div className="bg-card border border-dashed border-border rounded-xl p-8 text-center">
-          <div className="text-4xl mb-3">🏦</div>
-          <p className="text-sm text-foreground">No bank accounts yet</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Add your first account to start tracking balances and transactions.
-          </p>
-        </div>
+        <EmptyState
+          icon={Landmark}
+          title="No bank accounts yet"
+          body="Add your first account to start tracking balances and transactions."
+        >
+          <button className="btn-primary" onClick={() => setModal({ kind: 'create' })}>
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Add Account
+          </button>
+        </EmptyState>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {accounts.map((acc) => (
@@ -136,7 +145,7 @@ export function AccountsPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-foreground truncate">{acc.name}</span>
                     {acc.is_primary && (
-                      <span className="text-[10px] uppercase tracking-wide font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                      <span className="badge-primary">
                         Primary
                       </span>
                     )}
@@ -147,10 +156,10 @@ export function AccountsPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-semibold text-foreground whitespace-nowrap">
+                  <div className="text-sm font-semibold text-foreground whitespace-nowrap font-numeric">
                     {formatCurrency(acc.current_balance)}
                   </div>
-                  <div className="text-[10px] text-muted-foreground">
+                  <div className="text-[11px] text-muted-foreground">
                     {acc.transaction_count} txn{acc.transaction_count === 1 ? '' : 's'}
                   </div>
                 </div>
@@ -164,7 +173,7 @@ export function AccountsPage() {
                 <button
                   onClick={() => setModal({ kind: 'edit', account: acc })}
                   disabled={actioningId === acc.id}
-                  className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent transition-colors"
+                  className="btn-outline text-xs px-3 py-1.5"
                 >
                   Edit
                 </button>
@@ -172,13 +181,13 @@ export function AccountsPage() {
                   <button
                     onClick={() => handleSetPrimary(acc.id)}
                     disabled={actioningId === acc.id}
-                    className="text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent transition-colors"
+                    className="btn-outline text-xs px-3 py-1.5"
                   >
                     Set Primary
                   </button>
                 )}
                 <button
-                  onClick={() => handleDelete(acc)}
+                  onClick={() => setConfirmTarget(acc)}
                   disabled={actioningId === acc.id}
                   className="text-xs px-3 py-1.5 rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors ml-auto"
                 >
@@ -210,6 +219,18 @@ export function AccountsPage() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        onOpenChange={(o) => { if (!o) setConfirmTarget(null) }}
+        title="Delete account?"
+        description={
+          confirmTarget
+            ? `Delete account "${confirmTarget.name}"? This cannot be undone.`
+            : undefined
+        }
+        onConfirm={() => { if (confirmTarget) handleDelete(confirmTarget) }}
+      />
     </div>
   )
 }
@@ -260,8 +281,8 @@ function AccountModal({ mode, onClose, onSaved }: AccountModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in-0">
+      <div className="bg-popover rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border animate-in fade-in-0 zoom-in-95">
         <div className="px-6 py-4 border-b border-border">
           <h2 className="text-xl font-semibold text-foreground">
             {mode.kind === 'create' ? 'Add Bank Account' : 'Edit Bank Account'}
@@ -270,9 +291,7 @@ function AccountModal({ mode, onClose, onSaved }: AccountModalProps) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
+            <div className="alert-error">{error}</div>
           )}
 
           <div>
@@ -287,7 +306,7 @@ function AccountModal({ mode, onClose, onSaved }: AccountModalProps) {
               required
               maxLength={50}
               placeholder="e.g. HDFC Salary"
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              className="input-sm"
             />
           </div>
 
@@ -299,7 +318,7 @@ function AccountModal({ mode, onClose, onSaved }: AccountModalProps) {
               id="acc-bank"
               value={bankName}
               onChange={(e) => setBankName(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              className="input-sm"
               title="Select bank"
             >
               {INDIAN_BANKS.map((b) => (
@@ -322,7 +341,7 @@ function AccountModal({ mode, onClose, onSaved }: AccountModalProps) {
               maxLength={4}
               inputMode="numeric"
               placeholder="1234"
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              className="input-sm"
             />
           </div>
 
@@ -337,7 +356,7 @@ function AccountModal({ mode, onClose, onSaved }: AccountModalProps) {
               maxLength={500}
               rows={2}
               placeholder="Anything to remember about this account"
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground resize-y"
+              className="input-sm resize-y"
             />
           </div>
 

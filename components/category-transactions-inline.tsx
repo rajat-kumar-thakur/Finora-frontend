@@ -78,7 +78,7 @@ export function CategoryTransactionsInline({ categoryId, filters }: CategoryTran
     <div className="mt-1 mb-3 ml-1 pl-3 border-l-2 border-border">
       {loading ? (
         <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
-          <div className="animate-spin h-3.5 w-3.5 border-2 border-primary border-t-transparent rounded-full" />
+          <span className="spinner-sm" />
           Loading transactions…
         </div>
       ) : error ? (
@@ -106,8 +106,8 @@ export function CategoryTransactionsInline({ categoryId, filters }: CategoryTran
                   </span>
                 </div>
                 <span
-                  className={`text-sm tabular-nums whitespace-nowrap font-semibold shrink-0 ${
-                    isCredit ? 'text-green-400' : 'text-red-400'
+                  className={`text-sm tabular-nums whitespace-nowrap font-semibold shrink-0 font-numeric ${
+                    isCredit ? 'text-positive' : 'text-negative'
                   }`}
                 >
                   {isCredit ? '+' : '−'}

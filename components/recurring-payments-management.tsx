@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Plus, Trash2, Check, Calendar, DollarSign, AlertCircle, Edit } from "lucide-react"
+import { Plus, Trash2, Check, Calendar, IndianRupee, AlertCircle, Edit, CalendarClock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiClient } from "@/lib/api/client"
 import { useToast } from "@/components/ui/use-toast"
 import { formatCurrency, getApiErrorMessage } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/ui/empty-state"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 type PaymentFrequency = "daily" | "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly"
 
@@ -168,6 +171,7 @@ export default function RecurringPaymentsManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingPayment, setEditingPayment] = useState<RecurringPayment | null>(null)
   const [filter, setFilter] = useState<"all" | "upcoming" | "overdue">("all")
+  const [confirmTarget, setConfirmTarget] = useState<RecurringPayment | null>(null)
   const [payingIds, setPayingIds] = useState<Set<string>>(() => new Set())
   // Synchronous in-flight guard (refs update immediately, unlike state) so a
   // rapid double-click can't apply the optimistic summary delta twice.
@@ -320,8 +324,6 @@ export default function RecurringPaymentsManagement() {
   }
 
   const handleDelete = async (paymentId: string) => {
-    if (!confirm("Are you sure you want to delete this recurring payment?")) return
-    
     try {
       await apiClient.delete(`/api/v1/recurring-payments/${paymentId}`)
       toast({ title: "Payment deleted" })
@@ -388,25 +390,25 @@ export default function RecurringPaymentsManagement() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Active Payments</CardDescription>
-              <CardTitle className="text-3xl">{summary.active_payments}</CardTitle>
+              <CardTitle className="text-3xl font-numeric">{summary.active_payments}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Monthly Total</CardDescription>
-              <CardTitle className="text-3xl">{formatCurrency(summary.monthly_total)}</CardTitle>
+              <CardTitle className="text-3xl font-numeric">{formatCurrency(summary.monthly_total)}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Upcoming (7 days)</CardDescription>
-              <CardTitle className="text-3xl text-yellow-600">{summary.upcoming_7_days}</CardTitle>
+              <CardTitle className="text-3xl font-numeric text-warning">{summary.upcoming_7_days}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Overdue</CardDescription>
-              <CardTitle className="text-3xl text-red-600">{summary.overdue}</CardTitle>
+              <CardTitle className="text-3xl font-numeric text-negative">{summary.overdue}</CardTitle>
             </CardHeader>
           </Card>
         </div>
@@ -576,11 +578,19 @@ export default function RecurringPaymentsManagement() {
       {/* Payments List */}
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading...</div>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
         ) : payments.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              No recurring payments found. Add your first one to get started!
+            <CardContent>
+              <EmptyState
+                icon={CalendarClock}
+                title="No recurring payments"
+                body="Add your first one to get started!"
+              />
             </CardContent>
           </Card>
         ) : (
@@ -597,8 +607,8 @@ export default function RecurringPaymentsManagement() {
                       )}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4" />
+                      <span className="flex items-center gap-1 font-numeric">
+                        <IndianRupee className="h-4 w-4" />
                         {formatCurrency(payment.amount)}
                       </span>
                       <span className="flex items-center gap-1">
@@ -639,7 +649,8 @@ export default function RecurringPaymentsManagement() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleDelete(payment.id)}
+                      onClick={() => setConfirmTarget(payment)}
+                      aria-label="Delete payment"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -650,6 +661,18 @@ export default function RecurringPaymentsManagement() {
           ))
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        onOpenChange={(o) => { if (!o) setConfirmTarget(null) }}
+        title="Delete recurring payment?"
+        description={
+          confirmTarget
+            ? `Delete "${confirmTarget.name}"? This cannot be undone.`
+            : undefined
+        }
+        onConfirm={() => { if (confirmTarget) handleDelete(confirmTarget.id) }}
+      />
     </div>
   )
 }

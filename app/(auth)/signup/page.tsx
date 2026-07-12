@@ -83,7 +83,7 @@ export default function SignupPage() {
   // Show waitlist confirmation if signup is complete
   if (signupComplete) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="min-h-dvh flex items-center justify-center bg-background p-6">
         <div className="max-w-md text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <Clock className="w-8 h-8 text-primary" />
@@ -108,11 +108,11 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-dvh flex bg-background">
       {/* Left Side - Branding & Features (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-background to-primary/5 relative overflow-hidden">
-        <div className="absolute top-1/3 left-1/3 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute bottom-1/3 right-1/3 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+      <div className="hidden lg:flex lg:w-1/2 bg-sidebar relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.35] [mask-image:radial-gradient(ellipse_at_center,black_35%,transparent_75%)]" />
+        <div className="absolute top-1/4 left-1/4 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
 
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
           <Link href="/" className="flex items-center gap-3 mb-8 hover:opacity-80 transition-opacity">
@@ -164,15 +164,15 @@ export default function SignupPage() {
           <div className="mt-12 pt-8 border-t border-border/50">
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <CheckCircle2 className="w-4 h-4 text-positive" />
                 <span>Free to use</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <CheckCircle2 className="w-4 h-4 text-positive" />
                 <span>No credit card</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <CheckCircle2 className="w-4 h-4 text-positive" />
                 <span>Secure</span>
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function SignupPage() {
 
       {/* Right Side - Signup Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md stagger-children">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <Link href="/" className="inline-flex flex-col items-center gap-2 hover:opacity-80 transition-opacity">
@@ -285,7 +285,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+              className="btn-primary w-full py-3 mt-6"
             >
               {loading ? (
                 <>

@@ -87,17 +87,21 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
         href={disabled ? "#" : href}
         onClick={handleNavigation}
         className={cn(
-          "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
+          "relative flex items-center px-3 py-2 text-sm rounded-md transition-colors",
           isActive
-            ? "bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-white font-medium"
-            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#1F1F23]",
+            ? "bg-primary/10 text-sidebar-foreground font-medium"
+            : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent",
           disabled && "opacity-50 cursor-not-allowed",
           isCollapsed && "justify-center"
         )}
         aria-disabled={disabled}
+        aria-current={isActive ? "page" : undefined}
         title={isCollapsed ? children?.toString() : undefined}
       >
-        <Icon className={cn("h-4 w-4 flex-shrink-0", !isCollapsed && "mr-3")} />
+        {isActive && (
+          <span aria-hidden className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary" />
+        )}
+        <Icon className={cn("h-4 w-4 flex-shrink-0", isActive && "text-primary", !isCollapsed && "mr-3")} />
         {!isCollapsed && children}
       </Link>
     )
@@ -108,35 +112,37 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
       {/* Mobile hamburger menu button */}
       <button
         type="button"
-        className="lg:hidden fixed top-2 left-4 z-[70] p-2.5 rounded-xl bg-white dark:bg-[#1F1F23] shadow-lg border border-gray-200 dark:border-[#2F2F33] active:scale-95 transition-transform"
+        className="lg:hidden fixed top-[calc(0.5rem+env(safe-area-inset-top))] left-4 z-[70] p-2.5 rounded-xl bg-card shadow-lg border border-border active:scale-95 transition-transform touch-target"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         aria-label="Toggle navigation menu"
       >
-        <Menu className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+        <Menu className="h-5 w-5 text-foreground" />
       </button>
       <nav
         className={cn(
-          "fixed inset-y-0 left-0 z-[70] bg-white dark:bg-[#0F0F12] transform transition-all duration-200 ease-in-out border-r border-gray-200 dark:border-[#1F1F23]",
+          "fixed inset-y-0 left-0 z-[70] bg-sidebar transform transition-all duration-200 ease-in-out border-r border-sidebar-border",
           "lg:translate-x-0",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
           isCollapsed ? "lg:w-16" : "w-64"
         )}
       >
-        <div className="h-full flex flex-col min-h-0">
+        <div className="h-full flex flex-col min-h-0 pt-[env(safe-area-inset-top)]">
           {/* Logo/Brand */}
-          <div className="h-16 flex-shrink-0 border-b border-gray-200 dark:border-[#1F1F23] flex items-center justify-center relative px-3">
-            <Link href="/dashboard" className={cn("flex items-center hover:opacity-80 transition-opacity", isCollapsed ? "flex-col gap-0.5" : "gap-3 mr-auto")}>
+          <div className="h-16 flex-shrink-0 border-b border-sidebar-border flex items-center justify-center relative px-3">
+            <Link href="/dashboard" className={cn("flex items-center hover:opacity-80 transition-opacity", isCollapsed ? "justify-center" : "gap-3 mr-auto")}>
               <Image src="/icon.png" alt="Finora" width={32} height={32} className="w-8 h-8 rounded-lg" />
-              <span className={cn("font-semibold text-gray-900 dark:text-white", isCollapsed ? "text-[9px] leading-none" : "text-lg")}>
-                Finora
-              </span>
+              {!isCollapsed && (
+                <span className="font-semibold text-sidebar-foreground tracking-tight text-lg">
+                  Finora
+                </span>
+              )}
             </Link>
             {/* Collapse toggle for desktop */}
             {!isCollapsed && (
               <button
                 type="button"
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:flex p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-[#1F1F23] text-gray-600 dark:text-gray-300 transition-colors"
+                className="hidden lg:flex p-1.5 rounded-md hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-foreground transition-colors"
                 aria-label="Collapse sidebar"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -147,7 +153,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
               <button
                 type="button"
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white dark:bg-[#0F0F12] border border-gray-200 dark:border-[#1F1F23] hover:bg-gray-50 dark:hover:bg-[#1F1F23] text-gray-600 dark:text-gray-300 transition-colors shadow-md z-50"
+                className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-sidebar border border-sidebar-border hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-foreground transition-colors shadow-md z-50"
                 aria-label="Expand sidebar"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -161,7 +167,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
               {/* Main Navigation */}
               <div>
                 {!isCollapsed && (
-                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <div className="px-3 mb-2 text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-muted-foreground">
                     Overview
                   </div>
                 )}
@@ -187,7 +193,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
               {/* Investments & Assets */}
               <div>
                 {!isCollapsed && (
-                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <div className="px-3 mb-2 text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-muted-foreground">
                     Investments
                   </div>
                 )}
@@ -204,7 +210,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
               {/* Financial Planning */}
               <div>
                 {!isCollapsed && (
-                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <div className="px-3 mb-2 text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-muted-foreground">
                     Analytics
                   </div>
                 )}
@@ -228,7 +234,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
               {isAdmin && (
                 <div>
                   {!isCollapsed && (
-                    <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    <div className="px-3 mb-2 text-[11px] font-mono font-medium uppercase tracking-[0.12em] text-muted-foreground">
                       Admin
                     </div>
                   )}
@@ -243,7 +249,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
           </div>
 
           {/* Settings Footer */}
-          <div className="flex-shrink-0 px-4 py-4 border-t border-gray-200 dark:border-[#1F1F23]">
+          <div className="flex-shrink-0 px-4 py-4 border-t border-sidebar-border safe-area-inset-bottom">
             <div className="space-y-1">
               <NavItem href="/settings" icon={Settings}>
                 Settings
@@ -257,7 +263,7 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
                 type="button"
                 onClick={handleLogout}
                 className={cn(
-                  "flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#1F1F23]",
+                  "flex items-center w-full px-3 py-2 text-sm rounded-md transition-colors text-muted-foreground hover:text-destructive hover:bg-destructive/10",
                   isCollapsed && "justify-center"
                 )}
                 title={isCollapsed ? "Logout" : undefined}

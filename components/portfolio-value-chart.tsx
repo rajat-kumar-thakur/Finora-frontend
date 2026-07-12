@@ -8,8 +8,11 @@ import {
 } from '@/lib/api/investments'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { formatCurrency } from '@/lib/utils'
-import { Camera } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { formatCurrency, formatCompactINR } from '@/lib/utils'
+import { chartAxisTick, chartAxisLine, chartCursor } from '@/lib/chart-theme'
+import { Camera, ChartArea } from 'lucide-react'
 import {
   AreaChart,
   Area,
@@ -69,10 +72,10 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
     }
   }
 
-  // Determine chart color based on performance
+  // Directional series color (money up = mint, down = coral)
   const chartColor = useMemo(() => {
-    if (!performance) return 'hsl(var(--primary))'
-    return performance.is_positive ? '#22c55e' : '#ef4444' // green-500 / red-500
+    if (!performance) return 'var(--chart-1)'
+    return performance.is_positive ? 'var(--positive)' : 'var(--negative)'
   }, [performance])
 
   // Gradient ID for area fill
@@ -84,8 +87,8 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
         <CardHeader>
           <CardTitle className="text-base font-medium">Portfolio Value</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-[350px]">
-          <div className="animate-pulse text-muted-foreground">Loading chart...</div>
+        <CardContent>
+          <Skeleton className="h-[300px] w-full" />
         </CardContent>
       </Card>
     )
@@ -97,22 +100,22 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
         <CardHeader>
           <CardTitle className="text-base font-medium">Portfolio Value</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center h-[300px] text-center">
-          <p className="text-muted-foreground">
-            No portfolio history available yet.
-          </p>
-          <p className="text-sm text-muted-foreground mt-2 mb-4">
-            Create a snapshot to start tracking your portfolio value over time.
-          </p>
-          <Button
-            type="button"
-            onClick={handleCreateSnapshot}
-            disabled={creatingSnapshot}
-            className="gap-2"
+        <CardContent>
+          <EmptyState
+            icon={ChartArea}
+            title="No portfolio history yet"
+            body="Create a snapshot to start tracking your portfolio value over time."
           >
-            <Camera className="h-4 w-4" />
-            {creatingSnapshot ? 'Creating...' : 'Create Snapshot'}
-          </Button>
+            <Button
+              type="button"
+              onClick={handleCreateSnapshot}
+              disabled={creatingSnapshot}
+              className="gap-2"
+            >
+              <Camera className="h-4 w-4" />
+              {creatingSnapshot ? 'Creating...' : 'Create Snapshot'}
+            </Button>
+          </EmptyState>
         </CardContent>
       </Card>
     )
@@ -124,12 +127,12 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
         <div className="space-y-1">
           <CardTitle className="text-base font-medium">Portfolio Value</CardTitle>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold">
+            <span className="font-numeric text-2xl font-bold">
               {formatCurrency(performance.current_value)}
             </span>
             <span
-              className={`text-sm font-medium ${
-                performance.is_positive ? 'text-green-500' : 'text-red-500'
+              className={`font-numeric text-sm font-medium ${
+                performance.is_positive ? 'text-positive' : 'text-negative'
               }`}
             >
               {performance.is_positive ? '+' : ''}
@@ -143,14 +146,15 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
 
         <div className="flex items-center gap-2">
           {/* Time Period Selector */}
-          <div className="flex gap-1 bg-muted rounded-lg p-1">
+          <div className="flex gap-1 bg-surface-raised border border-border rounded-md p-0.5">
             {TIME_PERIODS.map((period) => (
               <button
                 key={period.value}
                 onClick={() => setSelectedPeriod(period.value)}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                aria-pressed={selectedPeriod === period.value}
+                className={`px-3 py-1 text-sm font-medium rounded-sm transition-colors ${
                   selectedPeriod === period.value
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground shadow-[0_0_0_1px_var(--border)]'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -175,7 +179,7 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
       </CardHeader>
 
       <CardContent>
-        <div className="h-[300px]">
+        <div className="h-[300px]" role="img" aria-label="Portfolio value over time area chart">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={performance.history}
@@ -183,16 +187,9 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
             >
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor={chartColor}
-                    stopOpacity={0.3}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor={chartColor}
-                    stopOpacity={0}
-                  />
+                  <stop offset="0%" stopColor={chartColor} stopOpacity={0.35} />
+                  <stop offset="55%" stopColor={chartColor} stopOpacity={0.12} />
+                  <stop offset="100%" stopColor={chartColor} stopOpacity={0} />
                 </linearGradient>
               </defs>
 
@@ -205,35 +202,44 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
                   }
                   return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
                 }}
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
+                tick={chartAxisTick}
+                axisLine={chartAxisLine}
                 tickLine={false}
               />
 
               <YAxis
-                tickFormatter={(value) => {
-                  if (value >= 10000000) return `${(value / 10000000).toFixed(1)}Cr`
-                  if (value >= 100000) return `${(value / 100000).toFixed(1)}L`
-                  if (value >= 1000) return `${(value / 1000).toFixed(0)}k`
-                  return value.toString()
-                }}
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                tickFormatter={(value) => formatCompactINR(value as number)}
+                tick={chartAxisTick}
                 axisLine={false}
                 tickLine={false}
-                width={50}
+                width={56}
               />
 
               <Tooltip
                 content={<CustomTooltip />}
-                cursor={{ stroke: 'hsl(var(--border))', strokeDasharray: '3 3' }}
+                cursor={chartCursor}
               />
 
               {/* Reference line at start value */}
               <ReferenceLine
                 y={performance.start_value}
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 strokeDasharray="3 3"
                 strokeOpacity={0.5}
+              />
+
+              {/* Glow underlay (SVG-only, out of tooltip payload) */}
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke={chartColor}
+                strokeWidth={6}
+                strokeOpacity={0.25}
+                fill="none"
+                dot={false}
+                activeDot={false}
+                tooltipType="none"
+                isAnimationActive={false}
               />
 
               <Area
@@ -246,7 +252,7 @@ export function PortfolioValueChart({ refreshTrigger = 0, onSnapshotCreated }: P
                 activeDot={{
                   r: 4,
                   fill: chartColor,
-                  stroke: 'hsl(var(--background))',
+                  stroke: 'var(--background)',
                   strokeWidth: 2
                 }}
               />
@@ -271,7 +277,7 @@ function CustomTooltip({ active, payload, label }: {
 
   return (
     <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
-      <p className="text-sm text-muted-foreground mb-1">
+      <p className="text-xs text-muted-foreground mb-1">
         {date.toLocaleDateString([], {
           weekday: 'short',
           month: 'short',
@@ -279,10 +285,10 @@ function CustomTooltip({ active, payload, label }: {
           year: 'numeric'
         })}
       </p>
-      <p className="text-lg font-bold">
+      <p className="font-numeric text-lg font-bold">
         {formatCurrency(data.value)}
       </p>
-      <p className={`text-sm ${data.return >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+      <p className={`font-numeric text-sm ${data.return >= 0 ? 'text-positive' : 'text-negative'}`}>
         {data.return >= 0 ? '+' : ''}{formatCurrency(data.return)}
         {' '}({data.return_percentage.toFixed(2)}%)
       </p>

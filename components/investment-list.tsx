@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, TrendingUp } from 'lucide-react'
 import { InvestmentForm } from './investment-form'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { formatCurrency } from '@/lib/utils'
 
 interface InvestmentListProps {
@@ -20,6 +23,7 @@ export function InvestmentList({ onUpdate }: InvestmentListProps) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingInvestment, setEditingInvestment] = useState<Investment | undefined>(undefined)
   const [activeTab, setActiveTab] = useState<'stocks' | 'mutualfunds'>('stocks')
+  const [confirmTarget, setConfirmTarget] = useState<Investment | null>(null)
 
   const fetchInvestments = async () => {
     try {
@@ -42,14 +46,12 @@ export function InvestmentList({ onUpdate }: InvestmentListProps) {
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this investment?')) {
-      try {
-        await investmentApi.delete(id)
-        fetchInvestments()
-        onUpdate()
-      } catch {
-        // Silently fail - UI will remain unchanged
-      }
+    try {
+      await investmentApi.delete(id)
+      fetchInvestments()
+      onUpdate()
+    } catch {
+      // Silently fail - UI will remain unchanged
     }
   }
 
@@ -63,7 +65,23 @@ export function InvestmentList({ onUpdate }: InvestmentListProps) {
     setIsFormOpen(true)
   }
 
-  if (loading) return <div>Loading investments...</div>
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Holdings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-9 w-full" />
+          <div className="space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const stocks = (investments || []).filter(inv => inv.investment_type === 'Stock' || inv.investment_type === 'ETF')
   const mutualFunds = (investments || []).filter(inv => inv.investment_type === 'Mutual Fund')
@@ -93,20 +111,20 @@ export function InvestmentList({ onUpdate }: InvestmentListProps) {
             <TableRow key={inv.id}>
               <TableCell className="font-medium">{inv.symbol}</TableCell>
               <TableCell>{inv.name}</TableCell>
-              <TableCell className="text-right">{inv.quantity}</TableCell>
-              <TableCell className="text-right">{formatCurrency(inv.purchase_price)}</TableCell>
-              <TableCell className="text-right">{formatCurrency(inv.current_price)}</TableCell>
-              <TableCell className="text-right font-bold">{formatCurrency(value)}</TableCell>
-              <TableCell className={`text-right ${ret >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <TableCell className="text-right font-numeric">{inv.quantity}</TableCell>
+              <TableCell className="text-right font-numeric">{formatCurrency(inv.purchase_price)}</TableCell>
+              <TableCell className="text-right font-numeric">{formatCurrency(inv.current_price)}</TableCell>
+              <TableCell className="text-right font-bold font-numeric">{formatCurrency(value)}</TableCell>
+              <TableCell className={`text-right font-numeric ${ret >= 0 ? 'text-positive' : 'text-negative'}`}>
                 {formatCurrency(ret)} ({retPercent.toFixed(2)}%)
               </TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(inv)}>
+                  <Button variant="ghost" size="icon" aria-label="Edit investment" onClick={() => handleEdit(inv)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(inv.id)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                  <Button variant="ghost" size="icon" aria-label="Delete investment" onClick={() => setConfirmTarget(inv)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
               </TableCell>
@@ -115,8 +133,8 @@ export function InvestmentList({ onUpdate }: InvestmentListProps) {
         })}
         {investmentList.length === 0 && (
           <TableRow>
-            <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-              {emptyMessage}
+            <TableCell colSpan={8}>
+              <EmptyState icon={TrendingUp} title={emptyMessage} />
             </TableCell>
           </TableRow>
         )}
@@ -152,11 +170,19 @@ export function InvestmentList({ onUpdate }: InvestmentListProps) {
         </Tabs>
       </CardContent>
       
-      <InvestmentForm 
-        open={isFormOpen} 
-        onOpenChange={setIsFormOpen} 
+      <InvestmentForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
         onSuccess={handleSuccess}
         investment={editingInvestment}
+      />
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        onOpenChange={(o) => { if (!o) setConfirmTarget(null) }}
+        title="Delete investment?"
+        description="This will permanently remove this investment from your portfolio."
+        onConfirm={() => { if (confirmTarget) handleDelete(confirmTarget.id) }}
       />
     </Card>
   )

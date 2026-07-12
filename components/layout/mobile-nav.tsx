@@ -37,7 +37,7 @@ function NavItem({ href, icon: Icon, label, isActive }: NavItemProps) {
       )}
     >
       <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
-      <span className="text-[10px] font-medium">{label}</span>
+      <span className="text-[11px] font-medium">{label}</span>
     </Link>
   )
 }
@@ -74,7 +74,7 @@ export function MobileNav({ onMenuClick }: MobileNavProps) {
           className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl text-muted-foreground hover:text-foreground transition-all"
         >
           <Menu className="h-5 w-5" />
-          <span className="text-[10px] font-medium">More</span>
+          <span className="text-[11px] font-medium">More</span>
         </button>
       </div>
     </nav>

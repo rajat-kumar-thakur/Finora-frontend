@@ -2,12 +2,19 @@
 
 /**
  * Export Button Component
- * 
+ *
  * Handles transaction export to PDF/Excel/CSV.
  */
 
 import { useState } from 'react'
 import { exportApi, downloadBlob, type ExportFilters } from '@/lib/api'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Download, ChevronDown, FileText, FileSpreadsheet, FileDown } from 'lucide-react'
 
 interface ExportButtonProps {
   filters?: ExportFilters
@@ -24,7 +31,7 @@ export function ExportButton({ filters }: ExportButtonProps) {
     try {
       let blob: Blob
       let filename: string
-      
+
       const timestamp = new Date().toISOString().split('T')[0]
 
       switch (format) {
@@ -43,7 +50,7 @@ export function ExportButton({ filters }: ExportButtonProps) {
       }
 
       downloadBlob(blob, filename)
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Export failed')
     } finally {
@@ -53,36 +60,32 @@ export function ExportButton({ filters }: ExportButtonProps) {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => handleExport('pdf')}
-          disabled={exporting}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 text-sm font-medium"
-        >
-          {exporting ? 'Exporting...' : '📄 Export PDF'}
-        </button>
-
-        <button
-          onClick={() => handleExport('excel')}
-          disabled={exporting}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 text-sm font-medium"
-        >
-          {exporting ? 'Exporting...' : '📊 Export Excel'}
-        </button>
-
-        <button
-          onClick={() => handleExport('csv')}
-          disabled={exporting}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 text-sm font-medium"
-        >
-          {exporting ? 'Exporting...' : '📝 Export CSV'}
-        </button>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button" disabled={exporting} className="btn-outline">
+            {exporting ? <span className="spinner-sm" /> : <Download className="h-4 w-4" />}
+            Export
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => handleExport('pdf')}>
+            <FileText />
+            PDF document
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleExport('excel')}>
+            <FileSpreadsheet />
+            Excel workbook
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleExport('csv')}>
+            <FileDown />
+            CSV file
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-sm text-red-800">{error}</p>
-        </div>
+        <div className="alert-error">{error}</div>
       )}
     </div>
   )

@@ -30,8 +30,7 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4rem)] overflow-y-auto bg-background">
-      <div className="max-w-7xl mx-auto page-container">
+    <div className="page-container">
         {/* Header */}
         <div className="header-row">
           <div className="page-header">
@@ -77,7 +76,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   )
 }

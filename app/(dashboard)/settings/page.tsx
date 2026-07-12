@@ -31,11 +31,11 @@ function Toggle({
       aria-label={label}
       aria-pressed={enabled ? "true" : "false"}
       className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${
-        enabled ? 'bg-primary' : 'bg-muted-foreground/30'
+        enabled ? 'bg-primary' : 'bg-muted border border-border'
       }`}
     >
       <span
-        className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+        className={`absolute top-0.5 w-5 h-5 rounded-full bg-background shadow transition-transform ${
           enabled ? 'left-5' : 'left-0.5'
         }`}
       />
@@ -331,7 +331,7 @@ export default function SettingsPage() {
                     day: 'numeric'
                   })}
                   disabled
-                  className="input-sm bg-muted text-muted-foreground cursor-not-allowed"
+                  className="input-sm bg-muted text-muted-foreground cursor-not-allowed font-numeric"
                 />
               </div>
               <button
@@ -594,7 +594,7 @@ export default function SettingsPage() {
                   Alert when balance falls below this amount
                 </p>
                 <div className="flex gap-2 items-center">
-                  <span className="text-muted-foreground text-sm">₹</span>
+                  <span className="font-numeric text-muted-foreground text-sm">₹</span>
                   <input
                     id="low-balance-threshold"
                     type="number"
@@ -646,7 +646,7 @@ export default function SettingsPage() {
                     min="50"
                     max="100"
                   />
-                  <span className="text-muted-foreground text-sm">%</span>
+                  <span className="font-numeric text-muted-foreground text-sm">%</span>
                   <button
                     type="button"
                     onClick={() => handleUpdateThresholds({

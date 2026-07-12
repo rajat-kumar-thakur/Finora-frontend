@@ -154,7 +154,7 @@ export function FixedDepositForm({ open, onOpenChange, onSuccess, deposit }: Fix
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md text-sm">
+            <div className="alert-error">
               {error}
             </div>
           )}
@@ -276,10 +276,10 @@ export function FixedDepositForm({ open, onOpenChange, onSuccess, deposit }: Fix
           {maturityPreview && maturityPreview > 0 && (
             <div className="rounded-md border border-border bg-accent/20 px-4 py-3 space-y-1">
               <div className="text-xs text-muted-foreground">Estimated Maturity</div>
-              <div className="text-lg font-bold text-foreground">
+              <div className="text-lg font-bold text-foreground font-numeric">
                 {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(maturityPreview)}
               </div>
-              <div className="text-xs text-green-600">
+              <div className="text-xs text-positive font-numeric">
                 Interest: {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(
                   formData.deposit_type === 'FD'
                     ? maturityPreview - formData.principal_amount

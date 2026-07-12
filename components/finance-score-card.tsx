@@ -6,8 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { apiClient } from "@/lib/api/client"
 import { useToast } from "@/components/ui/use-toast"
+import {
+  chartAxisTick,
+  chartAxisLine,
+  chartGrid,
+} from "@/lib/chart-theme"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 type ScoreGrade = "A+" | "A" | "B+" | "B" | "C" | "D" | "F"
@@ -42,14 +48,14 @@ interface HistoryEntry {
   period_start: string
 }
 
-const GRADE_COLORS: Record<ScoreGrade, { bg: string; text: string; border: string }> = {
-  "A+": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-500" },
-  "A": { bg: "bg-green-50", text: "text-green-700", border: "border-green-500" },
-  "B+": { bg: "bg-lime-50", text: "text-lime-700", border: "border-lime-500" },
-  "B": { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-500" },
-  "C": { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-500" },
-  "D": { bg: "bg-red-50", text: "text-red-700", border: "border-red-500" },
-  "F": { bg: "bg-red-100", text: "text-red-900", border: "border-red-700" }
+const GRADE_VARIANT: Record<ScoreGrade, "positive" | "warning" | "destructive"> = {
+  "A+": "positive",
+  "A": "positive",
+  "B+": "warning",
+  "B": "warning",
+  "C": "warning",
+  "D": "destructive",
+  "F": "destructive",
 }
 
 const METRIC_LABELS: Record<keyof FinanceScoreMetrics, { label: string; description: string; weight: string }> = {
@@ -94,7 +100,7 @@ export default function FinanceScoreCard() {
         apiClient.get<FinanceScore>("/api/v1/finance-score/current"),
         apiClient.get<{ scores: HistoryEntry[] }>("/api/v1/finance-score/history?limit=12")
       ])
-      
+
       setScore(currentData || null)
       setHistory(historyData?.scores || [])
     } catch (error) {
@@ -132,27 +138,22 @@ export default function FinanceScoreCard() {
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return "text-emerald-600"
-    if (score >= 80) return "text-green-600"
-    if (score >= 70) return "text-lime-600"
-    if (score >= 60) return "text-yellow-600"
-    if (score >= 50) return "text-orange-600"
-    return "text-red-600"
+    if (score >= 80) return "text-positive"
+    if (score >= 50) return "text-warning"
+    return "text-negative"
   }
 
   const getMetricColor = (value: number) => {
-    if (value >= 80) return "bg-emerald-500"
-    if (value >= 60) return "bg-green-500"
-    if (value >= 40) return "bg-yellow-500"
-    if (value >= 20) return "bg-orange-500"
-    return "bg-red-500"
+    if (value >= 60) return "bg-positive"
+    if (value >= 30) return "bg-warning"
+    return "bg-negative"
   }
 
   const getTrendIcon = () => {
-    if (!score?.trend) return <Minus className="h-5 w-5 text-gray-500" />
-    if (score.trend === "up") return <TrendingUp className="h-5 w-5 text-green-600" />
-    if (score.trend === "down") return <TrendingDown className="h-5 w-5 text-red-600" />
-    return <Minus className="h-5 w-5 text-gray-500" />
+    if (!score?.trend) return <Minus className="h-5 w-5 text-muted-foreground" />
+    if (score.trend === "up") return <TrendingUp className="h-5 w-5 text-positive" />
+    if (score.trend === "down") return <TrendingDown className="h-5 w-5 text-negative" />
+    return <Minus className="h-5 w-5 text-muted-foreground" />
   }
 
   const formatDate = (dateStr: string) => {
@@ -168,8 +169,23 @@ export default function FinanceScoreCard() {
   if (loading) {
     return (
       <Card>
-        <CardContent className="py-12 text-center text-muted-foreground">
-          Loading finance score...
+        <CardHeader>
+          <Skeleton className="h-5 w-48" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex justify-center md:col-span-1">
+              <Skeleton className="h-40 w-40 rounded-full" />
+            </div>
+            <div className="md:col-span-2 space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
     )
@@ -185,9 +201,11 @@ export default function FinanceScoreCard() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-center py-8">
-            <Award className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">
+          <div className="empty-state">
+            <div className="icon-box-lg mb-4">
+              <Award className="h-6 w-6" />
+            </div>
+            <p className="empty-state-text mb-4">
               No score calculated yet. Click below to generate your first finance score.
             </p>
             <Button onClick={handleCalculate} disabled={calculating}>
@@ -200,17 +218,20 @@ export default function FinanceScoreCard() {
     )
   }
 
-  const gradeStyle = GRADE_COLORS[score.grade]
+  const scoreColor = getScoreColor(score.score)
+  const ringRadius = 70
+  const ringCircumference = 2 * Math.PI * ringRadius
+  const ringOffset = ringCircumference * (1 - Math.round(score.score) / 100)
 
   return (
     <div className="space-y-6">
       {/* Main Score Card */}
-      <Card className={`border-2 ${gradeStyle.border}`}>
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Finance Health Score</CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
+              <CardDescription>
                 Period: {formatDate(score.period_start)} - {formatDate(score.period_end)}
               </CardDescription>
             </div>
@@ -222,20 +243,35 @@ export default function FinanceScoreCard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Score Display */}
+            {/* Score Display — SVG progress ring */}
             <div className="text-center md:col-span-1">
-              <div className={`inline-flex flex-col items-center justify-center rounded-full w-40 h-40 border-8 ${gradeStyle.border} ${gradeStyle.bg} dark:bg-opacity-20`}>
-                <div className={`text-5xl font-bold ${getScoreColor(score.score)}`}>
-                  {Math.round(score.score)}
-                </div>
-                <div className={`text-3xl font-bold ${gradeStyle.text} dark:brightness-125 mt-1`}>
-                  {score.grade}
+              <div className="relative inline-flex items-center justify-center">
+                <svg width="160" height="160" viewBox="0 0 160 160" className={scoreColor} role="img" aria-label={`Score ${Math.round(score.score)} of 100, grade ${score.grade}`}>
+                  <circle cx="80" cy="80" r={ringRadius} fill="none" stroke="var(--border)" strokeWidth="8" />
+                  <circle
+                    cx="80"
+                    cy="80"
+                    r={ringRadius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={ringCircumference}
+                    strokeDashoffset={ringOffset}
+                    transform="rotate(-90 80 80)"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                  <span className={`font-numeric text-5xl font-semibold ${scoreColor}`}>
+                    {Math.round(score.score)}
+                  </span>
+                  <Badge variant={GRADE_VARIANT[score.grade]}>{score.grade}</Badge>
                 </div>
               </div>
               {score.score_change !== undefined && (
                 <div className="flex items-center justify-center gap-2 mt-4">
                   {getTrendIcon()}
-                  <span className={score.trend === "up" ? "text-green-600 dark:text-green-400" : score.trend === "down" ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"}>
+                  <span className={`font-numeric ${score.trend === "up" ? "text-positive" : score.trend === "down" ? "text-negative" : "text-muted-foreground"}`}>
                     {score.score_change > 0 ? "+" : ""}{Math.round(score.score_change)} points
                   </span>
                 </div>
@@ -244,22 +280,22 @@ export default function FinanceScoreCard() {
 
             {/* Metrics Breakdown */}
             <div className="md:col-span-2 space-y-4">
-              <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">Score Breakdown</h3>
+              <h3 className="section-title mb-3">Score Breakdown</h3>
               {Object.entries(score.metrics).map(([key, value]) => {
                 const metric = METRIC_LABELS[key as keyof FinanceScoreMetrics]
                 return (
                   <div key={key} className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-800 dark:text-gray-200">{metric.label}</span>
-                        <Badge variant="outline" className="text-xs border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
+                        <span className="font-medium text-foreground">{metric.label}</span>
+                        <Badge variant="outline" className="text-xs">
                           {metric.weight}
                         </Badge>
                       </div>
-                      <span className={getScoreColor(value)}>{Math.round(value)}</span>
+                      <span className={`font-numeric ${getScoreColor(value)}`}>{Math.round(value)}</span>
                     </div>
                     <Progress value={value} className="h-2" indicatorClassName={getMetricColor(value)} />
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{metric.description}</p>
+                    <p className="text-xs text-muted-foreground">{metric.description}</p>
                   </div>
                 )
               })}
@@ -280,8 +316,8 @@ export default function FinanceScoreCard() {
                 <ul className="space-y-2">
                   {score.insights.map((insight, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm">
-                      <TrendingUp className="h-4 w-4 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">{insight}</span>
+                      <TrendingUp className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                      <span className="text-muted-foreground">{insight}</span>
                     </li>
                   ))}
                 </ul>
@@ -298,8 +334,8 @@ export default function FinanceScoreCard() {
                 <ul className="space-y-2">
                   {score.recommendations.map((rec, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm">
-                      <Target className="h-4 w-4 mt-0.5 text-green-600 dark:text-green-400 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">{rec}</span>
+                      <Target className="h-4 w-4 mt-0.5 text-positive flex-shrink-0" />
+                      <span className="text-muted-foreground">{rec}</span>
                     </li>
                   ))}
                 </ul>
@@ -317,43 +353,54 @@ export default function FinanceScoreCard() {
             <CardDescription>Track your financial health over time</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="[&_.recharts-cartesian-grid-horizontal>line]:stroke-gray-200 [&_.recharts-cartesian-grid-horizontal>line]:dark:stroke-gray-700 [&_.recharts-cartesian-grid-vertical>line]:stroke-gray-200 [&_.recharts-cartesian-grid-vertical>line]:dark:stroke-gray-700">
-              <ResponsiveContainer width="100%" height={250}>
+            <div className="h-[250px]" role="img" aria-label="Score history line chart">
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                  <XAxis 
-                    dataKey="date" 
-                    className="text-gray-600 dark:text-gray-400"
-                    tick={{ fill: 'currentColor' }}
-                    stroke="currentColor"
+                  <CartesianGrid {...chartGrid} />
+                  <XAxis
+                    dataKey="date"
+                    tick={chartAxisTick}
+                    axisLine={chartAxisLine}
+                    tickLine={false}
                   />
-                  <YAxis 
-                    domain={[0, 100]} 
-                    className="text-gray-600 dark:text-gray-400"
-                    tick={{ fill: 'currentColor' }}
-                    stroke="currentColor"
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={chartAxisTick}
+                    axisLine={chartAxisLine}
+                    tickLine={false}
                   />
-                  <Tooltip 
+                  <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded shadow-lg">
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{payload[0].payload.date}</p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">Score: {payload[0].value}</p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">Grade: {payload[0].payload.grade}</p>
+                          <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
+                            <p className="text-xs text-muted-foreground">{payload[0].payload.date}</p>
+                            <p className="font-numeric text-sm text-foreground">Score: {payload[0].value}</p>
+                            <p className="text-sm text-muted-foreground">Grade: {payload[0].payload.grade}</p>
                           </div>
                         )
                       }
                       return null
                     }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="score" 
-                    stroke="#10b981" 
+                  {/* Glow underlay */}
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="var(--chart-1)"
+                    strokeWidth={6}
+                    strokeOpacity={0.25}
+                    dot={false}
+                    activeDot={false}
+                    isAnimationActive={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="var(--chart-1)"
                     strokeWidth={2}
-                    dot={{ fill: '#10b981', r: 4 }}
-                    activeDot={{ r: 6 }}
+                    dot={{ fill: 'var(--chart-1)', r: 4 }}
+                    activeDot={{ r: 6, stroke: 'var(--background)', strokeWidth: 2 }}
                   />
                 </LineChart>
               </ResponsiveContainer>

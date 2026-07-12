@@ -7,10 +7,12 @@
  */
 
 import { useState, useEffect } from 'react'
+import { Wallet, Landmark, TrendingUp, Building2 } from 'lucide-react'
 import { summaryApi, type NetWorth } from '@/lib/api'
 import { investmentApi, type PortfolioSummary } from '@/lib/api/investments'
 import { fixedDepositApi, type FixedDepositSummary } from '@/lib/api/fixed-deposits'
 import { formatCurrency } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
 
 interface NetWorthCardProps {
@@ -64,9 +66,16 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
 
   if (loading) {
     return (
-      <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="card-base card-padding lg:p-8 glow-primary">
+        <div className="space-y-2 mb-4">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-9 w-48" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
         </div>
       </div>
     )
@@ -74,28 +83,26 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
 
   if (error) {
     return (
-      <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4">
+      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
         <p className="text-sm text-destructive">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-card rounded-xl border border-border shadow-sm p-3 sm:p-4">
+    <div className="card-base card-padding lg:p-8 glow-primary">
       <div className="flex items-center gap-2 mb-3 sm:mb-4">
-        <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-        </svg>
+        <Wallet className="h-4 w-4 text-muted-foreground" />
         <h2 className="text-sm sm:text-base font-semibold text-foreground">Accounts</h2>
       </div>
 
       {/* Total Balance */}
       <div className="mb-3 sm:mb-4">
-        <div className="text-xs text-muted-foreground mb-1">Total Balance</div>
-        <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
+        <div className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted-foreground mb-1">Total Balance</div>
+        <div className="stat-hero">
           {formatCurrency((netWorth?.bank_balance || 0) + (portfolio?.total_value || 0) + (fdSummary?.total_invested || 0))}
         </div>
-        <div className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+        <div className="text-xs text-muted-foreground font-numeric mt-1">
           Bank: {formatCurrency(netWorth?.bank_balance || 0)} + Investments: {formatCurrency(portfolio?.total_value || 0)}{(fdSummary?.total_invested || 0) > 0 ? ` + FD: ${formatCurrency(fdSummary?.total_invested || 0)}` : ''}
         </div>
       </div>
@@ -112,19 +119,17 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
         {/* Per-account tiles (dynamic) */}
         {netWorth?.accounts && netWorth.accounts.length > 0 ? (
           netWorth.accounts.map((acc) => (
-            <Link href="/accounts" key={acc.account_id} className="block">
+            <Link href="/accounts" key={acc.account_id} className="block card-interactive">
               <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg border border-border hover:bg-accent transition-all duration-200">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
+                  <div className="w-8 h-8 bg-positive/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Landmark className="w-4 h-4 text-positive" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-foreground truncate flex items-center gap-1">
                       {acc.name}
                       {acc.is_primary && (
-                        <span className="text-[9px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                        <span className="text-[11px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
                           Primary
                         </span>
                       )}
@@ -132,7 +137,7 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
                     <div className="text-xs text-muted-foreground truncate">{acc.bank_name}</div>
                   </div>
                 </div>
-                <div className="text-sm font-semibold text-foreground flex-shrink-0">
+                <div className="text-sm font-semibold text-foreground flex-shrink-0 font-numeric">
                   {formatCurrency(acc.balance)}
                 </div>
               </div>
@@ -155,16 +160,14 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
               : 'bg-accent/30 border-dashed border-border opacity-60'
           }`}>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
+              <div className="w-8 h-8 bg-chart-3/10 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-chart-3" />
               </div>
               <div>
                 <div className="text-sm font-medium text-foreground">Investment Portfolio</div>
                 <div className="text-xs text-muted-foreground">
                   {portfolio && portfolio.total_value > 0 ? (
-                    <span className={portfolio.total_return >= 0 ? 'text-green-500' : 'text-red-500'}>
+                    <span className={portfolio.total_return >= 0 ? 'text-positive font-numeric' : 'text-negative font-numeric'}>
                       {portfolio.total_return >= 0 ? '+' : ''}{portfolio.return_percentage.toFixed(2)}% return
                     </span>
                   ) : (
@@ -173,8 +176,8 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
                 </div>
               </div>
             </div>
-            <div className="text-sm font-semibold text-foreground">
-              {portfolio && portfolio.total_value > 0 
+            <div className="text-sm font-semibold text-foreground font-numeric">
+              {portfolio && portfolio.total_value > 0
                 ? formatCurrency(portfolio.total_value)
                 : '—'
               }
@@ -190,10 +193,8 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
               : 'bg-accent/30 border-dashed border-border opacity-60'
           }`}>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
+              <div className="w-8 h-8 bg-warning/10 rounded-lg flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-warning" />
               </div>
               <div>
                 <div className="text-sm font-medium text-foreground">Fixed Deposits</div>
@@ -205,7 +206,7 @@ export function NetWorthCard({ refreshTrigger }: NetWorthCardProps = {}) {
                 </div>
               </div>
             </div>
-            <div className="text-sm font-semibold text-foreground">
+            <div className="text-sm font-semibold text-foreground font-numeric">
               {fdSummary && fdSummary.total_invested > 0
                 ? formatCurrency(fdSummary.total_invested)
                 : '—'

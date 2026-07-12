@@ -7,7 +7,10 @@
  */
 
 import { useState, useEffect } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { categoryApi, type Category, type CategoryCreate } from '@/lib/api'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export function CategoryManagement() {
   const [categories, setCategories] = useState<Category[]>([])
@@ -24,6 +27,7 @@ export function CategoryManagement() {
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState<Category | null>(null)
 
   useEffect(() => {
     loadCategories()
@@ -116,8 +120,10 @@ export function CategoryManagement() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-16 w-full" />
+        ))}
       </div>
     )
   }
@@ -132,15 +138,19 @@ export function CategoryManagement() {
         <h2 className="text-xl font-semibold text-foreground">Categories</h2>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm font-medium shadow-sm transition-colors"
+          className="btn-primary"
         >
           {showCreateForm ? 'Cancel' : '+ Create Category'}
         </button>
       </div>
 
+      {error && (
+        <div className="alert-error">{error}</div>
+      )}
+
       {/* Create Form */}
       {showCreateForm && (
-        <form onSubmit={handleCreate} className="bg-card border border-border rounded-lg p-4 space-y-4 shadow-sm">
+        <form onSubmit={handleCreate} className="card-base card-padding space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
               Category Name
@@ -149,7 +159,7 @@ export function CategoryManagement() {
               type="text"
               value={newCategory.name}
               onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              className="input-sm"
               placeholder="e.g., Groceries"
               required
             />
@@ -164,7 +174,7 @@ export function CategoryManagement() {
                 type="color"
                 value={newCategory.color}
                 onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
-                className="w-full h-10 border border-border rounded-md"
+                className="h-10 w-full rounded-md border border-border bg-background p-1"
               />
             </div>
 
@@ -176,7 +186,7 @@ export function CategoryManagement() {
                 type="text"
                 value={newCategory.icon}
                 onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                className="input-sm"
                 placeholder="🛒"
                 maxLength={2}
               />
@@ -186,17 +196,11 @@ export function CategoryManagement() {
           <button
             type="submit"
             disabled={creating}
-            className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-colors"
+            className="btn-primary w-full"
           >
             {creating ? 'Creating...' : 'Create Category'}
           </button>
         </form>
-      )}
-
-      {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
       )}
 
       {/* System Categories */}
@@ -310,23 +314,21 @@ export function CategoryManagement() {
                         onClick={() => handleEdit(category)}
                         className="flex-shrink-0 p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors opacity-0 group-hover:opacity-100"
                         title="Edit category"
+                        aria-label="Edit category"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
+                        <Pencil className="w-4 h-4" aria-hidden="true" />
                       </button>
                       <button
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => setConfirmTarget(category)}
                         disabled={deleting === category.id}
                         className="flex-shrink-0 p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
                         title="Delete category"
+                        aria-label="Delete category"
                       >
                         {deleting === category.id ? (
-                          <div className="animate-spin h-4 w-4 border-2 border-destructive border-t-transparent rounded-full" />
+                          <span className="spinner-sm h-4 w-4 text-destructive" />
                         ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
                         )}
                       </button>
                     </div>
@@ -337,6 +339,18 @@ export function CategoryManagement() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        onOpenChange={(o) => { if (!o) setConfirmTarget(null) }}
+        title="Delete category?"
+        description={
+          confirmTarget
+            ? `Delete the "${confirmTarget.name}" category? This cannot be undone.`
+            : undefined
+        }
+        onConfirm={() => { if (confirmTarget) handleDelete(confirmTarget.id) }}
+      />
     </div>
   )
 }

@@ -10,6 +10,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { summaryApi, type MonthlySummary } from '@/lib/api'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Props {
   year: number
@@ -52,9 +53,13 @@ export function MonthComparison({ year, month, currentSummary }: Props) {
 
   if (loading) {
     return (
-      <div className="mt-4 sm:mt-6 pt-4 border-t border-border">
-        <div className="flex items-center justify-center py-4">
-          <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+      <div className="mt-4 sm:mt-6 pt-4 border-t border-border space-y-3">
+        <Skeleton className="h-4 w-32" />
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
         </div>
       </div>
     )
@@ -109,8 +114,8 @@ export function MonthComparison({ year, month, currentSummary }: Props) {
           const colorClass = isNeutral
             ? 'text-muted-foreground'
             : isGood
-              ? 'text-green-500'
-              : 'text-red-500'
+              ? 'text-positive'
+              : 'text-negative'
 
           const Icon = isNeutral ? Minus : isUp ? TrendingUp : TrendingDown
 
@@ -121,17 +126,17 @@ export function MonthComparison({ year, month, currentSummary }: Props) {
             >
               <div className="flex flex-col">
                 <span className="text-xs sm:text-sm font-medium text-foreground">{label}</span>
-                <span className="text-[10px] sm:text-xs text-muted-foreground">
+                <span className="text-[11px] sm:text-xs text-muted-foreground font-numeric">
                   Last: ₹{formatINR(previous)}
                 </span>
               </div>
               <div className={`flex items-center gap-1.5 text-xs sm:text-sm font-semibold ${colorClass}`}>
                 <Icon className="h-3.5 w-3.5" />
-                <span className="tabular-nums whitespace-nowrap">
+                <span className="font-numeric whitespace-nowrap">
                   {isUp ? '+' : isDown ? '−' : ''}₹{formatINR(Math.abs(delta))}
                 </span>
                 {previous !== 0 && (
-                  <span className="text-[10px] sm:text-xs opacity-80 tabular-nums">
+                  <span className="text-[11px] sm:text-xs opacity-80 font-numeric">
                     ({isUp ? '+' : isDown ? '−' : ''}{Math.abs(pct).toFixed(0)}%)
                   </span>
                 )}

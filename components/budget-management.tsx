@@ -10,6 +10,10 @@ import { useState, useEffect } from 'react'
 import { budgetApi, type Budget, type BudgetCreate, type BudgetSummary } from '@/lib/api/budgets'
 import { categoryApi, type Category } from '@/lib/api/categories'
 import { Target, Plus, Pencil, Trash2, X, Check, AlertTriangle } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export function BudgetManagement() {
   const [budgets, setBudgets] = useState<Budget[]>([])
@@ -28,6 +32,7 @@ export function BudgetManagement() {
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState<Budget | null>(null)
 
   useEffect(() => {
     loadData()
@@ -134,37 +139,34 @@ export function BudgetManagement() {
   }
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= 100) return 'bg-red-500'
-    if (percentage >= 80) return 'bg-yellow-500'
-    return 'bg-green-500'
+    if (percentage >= 100) return 'bg-negative'
+    if (percentage >= 80) return 'bg-warning'
+    return 'bg-positive'
   }
 
   const getStatusBadge = (percentage: number) => {
     if (percentage >= 100) {
-      return (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
-          Exceeded
-        </span>
-      )
+      return <span className="badge-destructive">Exceeded</span>
     }
     if (percentage >= 80) {
-      return (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
-          Warning
-        </span>
-      )
+      return <span className="badge-warning">Warning</span>
     }
-    return (
-      <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
-        On Track
-      </span>
-    )
+    return <span className="badge-success">On Track</span>
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
+        </div>
+        <div className="card-base p-4 space-y-4">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
       </div>
     )
   }
@@ -173,10 +175,10 @@ export function BudgetManagement() {
     <div className="space-y-6">
       {/* Error Message */}
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg flex items-center gap-2">
+        <div className="alert-error flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
           {error}
-          <button onClick={() => setError(null)} className="ml-auto">
+          <button onClick={() => setError(null)} className="ml-auto" aria-label="Dismiss error">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -185,27 +187,27 @@ export function BudgetManagement() {
       {/* Summary Cards */}
       {summary && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <div className="text-sm text-muted-foreground">Total Budgeted</div>
-            <div className="text-xl font-semibold text-foreground mt-1">
-              {summary.total_budgeted.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+          <div className="stat-card">
+            <div className="stat-label">Total Budgeted</div>
+            <div className="stat-value font-numeric">
+              {formatCurrency(summary.total_budgeted)}
             </div>
           </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <div className="text-sm text-muted-foreground">Total Spent</div>
-            <div className="text-xl font-semibold text-foreground mt-1">
-              {summary.total_spent.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+          <div className="stat-card">
+            <div className="stat-label">Total Spent</div>
+            <div className="stat-value font-numeric">
+              {formatCurrency(summary.total_spent)}
             </div>
           </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <div className="text-sm text-muted-foreground">Remaining</div>
-            <div className="text-xl font-semibold text-green-600 dark:text-green-400 mt-1">
-              {summary.total_remaining.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+          <div className="stat-card">
+            <div className="stat-label">Remaining</div>
+            <div className="stat-value font-numeric text-positive">
+              {formatCurrency(summary.total_remaining)}
             </div>
           </div>
-          <div className="p-4 rounded-lg border border-border bg-card">
-            <div className="text-sm text-muted-foreground">Overall Usage</div>
-            <div className="text-xl font-semibold text-foreground mt-1">
+          <div className="stat-card">
+            <div className="stat-label">Overall Usage</div>
+            <div className="stat-value font-numeric">
               {summary.overall_percentage.toFixed(1)}%
             </div>
           </div>
@@ -213,7 +215,7 @@ export function BudgetManagement() {
       )}
 
       {/* Budgets List */}
-      <div className="rounded-lg border border-border bg-card">
+      <div className="card-base">
         <div className="p-4 border-b border-border flex items-center justify-between">
           <h2 className="font-semibold text-foreground flex items-center gap-2">
             <Target className="h-5 w-5" />
@@ -226,7 +228,7 @@ export function BudgetManagement() {
                 setEditingId(null)
                 setEditForm(null)
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              className="btn-primary"
             >
               <Plus className="h-4 w-4" />
               Add Budget
@@ -243,7 +245,7 @@ export function BudgetManagement() {
                 <select
                   value={newBudget.category_id}
                   onChange={(e) => setNewBudget({ ...newBudget, category_id: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="input-sm"
                 >
                   <option value="">Select category</option>
                   {availableCategories.map((cat) => (
@@ -260,7 +262,7 @@ export function BudgetManagement() {
                   value={newBudget.amount || ''}
                   onChange={(e) => setNewBudget({ ...newBudget, amount: parseFloat(e.target.value) || 0 })}
                   placeholder="Budget amount"
-                  className="w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="input-sm"
                 />
               </div>
               <div>
@@ -268,7 +270,7 @@ export function BudgetManagement() {
                 <select
                   value={newBudget.period}
                   onChange={(e) => setNewBudget({ ...newBudget, period: e.target.value as 'weekly' | 'monthly' })}
-                  className="w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="input-sm"
                 >
                   <option value="monthly">Monthly</option>
                   <option value="weekly">Weekly</option>
@@ -278,14 +280,14 @@ export function BudgetManagement() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="flex-1 px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  className="flex-1 btn-primary"
                 >
                   {creating ? 'Creating...' : 'Create'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className="px-3 py-2 text-sm border border-input rounded-md hover:bg-muted transition-colors"
+                  className="btn-outline"
                 >
                   Cancel
                 </button>
@@ -297,11 +299,11 @@ export function BudgetManagement() {
         {/* Budget Items */}
         <div className="divide-y divide-border">
           {budgets.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No budgets set up yet</p>
-              <p className="text-sm mt-1">Create your first budget to start tracking spending</p>
-            </div>
+            <EmptyState
+              icon={Target}
+              title="No budgets set up yet"
+              body="Create your first budget to start tracking spending"
+            />
           ) : (
             budgets.map((budget) => (
               <div key={budget.id} className="p-4">
@@ -324,7 +326,7 @@ export function BudgetManagement() {
                         type="number"
                         value={editForm?.amount || ''}
                         onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) || 0 })}
-                        className="w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="input-sm"
                       />
                     </div>
                     <div>
@@ -332,7 +334,7 @@ export function BudgetManagement() {
                       <select
                         value={editForm?.period || budget.period}
                         onChange={(e) => setEditForm({ ...editForm, period: e.target.value as 'weekly' | 'monthly' })}
-                        className="w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="input-sm"
                       >
                         <option value="monthly">Monthly</option>
                         <option value="weekly">Weekly</option>
@@ -342,14 +344,15 @@ export function BudgetManagement() {
                       <button
                         onClick={() => handleUpdate(budget.id)}
                         disabled={updating}
-                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                        className="flex-1 btn-primary"
                       >
                         <Check className="h-4 w-4" />
                         {updating ? 'Saving...' : 'Save'}
                       </button>
                       <button
                         onClick={handleCancelEdit}
-                        className="px-3 py-2 text-sm border border-input rounded-md hover:bg-muted transition-colors"
+                        className="btn-outline"
+                        aria-label="Cancel edit"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -372,24 +375,26 @@ export function BudgetManagement() {
                       <div className="flex items-center gap-3">
                         {getStatusBadge(budget.percentage_used)}
                         <div className="text-right">
-                          <div className="font-medium text-foreground">
+                          <div className="font-medium text-foreground font-numeric">
                             {budget.spent.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            of {budget.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                            of <span className="font-numeric">{budget.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleEdit(budget)}
                             className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                            aria-label="Edit budget"
                           >
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(budget.id)}
+                            onClick={() => setConfirmTarget(budget)}
                             disabled={deleting === budget.id}
-                            className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50"
+                            className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors disabled:opacity-50"
+                            aria-label="Delete budget"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -404,9 +409,9 @@ export function BudgetManagement() {
                       />
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{budget.percentage_used.toFixed(1)}% used</span>
+                      <span><span className="font-numeric">{budget.percentage_used.toFixed(1)}%</span> used</span>
                       <span>
-                        {budget.remaining.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })} remaining
+                        <span className="font-numeric">{budget.remaining.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span> remaining
                       </span>
                     </div>
                   </div>
@@ -416,6 +421,14 @@ export function BudgetManagement() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        onOpenChange={(o) => { if (!o) setConfirmTarget(null) }}
+        title="Delete budget?"
+        description={confirmTarget ? `Remove the ${confirmTarget.category_name} budget? This can't be undone.` : undefined}
+        onConfirm={() => { if (confirmTarget) handleDelete(confirmTarget.id) }}
+      />
     </div>
   )
 }

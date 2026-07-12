@@ -18,6 +18,19 @@ export function formatCurrency(amount: number | undefined | null): string {
 }
 
 /**
+ * Compact INR formatter for chart axes/tooltips, e.g. 2460318 -> "₹24.6L".
+ * Indian scale: Cr (crore, 1e7), L (lakh, 1e5), k (thousand, 1e3).
+ */
+export function formatCompactINR(value: number): string {
+  const abs = Math.abs(value)
+  const sign = value < 0 ? "-" : ""
+  if (abs >= 1e7) return `${sign}₹${(abs / 1e7).toFixed(1)}Cr`
+  if (abs >= 1e5) return `${sign}₹${(abs / 1e5).toFixed(1)}L`
+  if (abs >= 1e3) return `${sign}₹${(abs / 1e3).toFixed(0)}k`
+  return `${sign}₹${abs.toFixed(0)}`
+}
+
+/**
  * Turn a "field" path into a readable label, e.g. "purchase_price" -> "Purchase price".
  */
 function prettifyField(field: string): string {

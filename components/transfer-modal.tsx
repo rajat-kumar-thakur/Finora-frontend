@@ -100,8 +100,8 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in-0 duration-200">
+      <div className="bg-popover rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border animate-in fade-in-0 zoom-in-95 duration-200">
         <div className="px-6 py-4 border-b border-border">
           <h2 className="text-xl font-semibold text-foreground">Transfer Between Accounts</h2>
           <p className="text-xs text-muted-foreground mt-1">
@@ -111,14 +111,12 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
+            <div className="alert-error">{error}</div>
           )}
 
           {loadingAccounts ? (
-            <div className="flex items-center justify-center py-6">
-              <div className="animate-spin h-6 w-6 border-4 border-primary border-t-transparent rounded-full" />
+            <div className="flex items-center justify-center py-6 text-primary">
+              <span className="spinner-sm" />
             </div>
           ) : accounts.length < 2 ? (
             <div className="bg-accent/30 border border-border rounded-lg p-3">
@@ -139,7 +137,7 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
                   id="tr-from"
                   value={fromAccountId}
                   onChange={(e) => setFromAccountId(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                  className="input-sm"
                   title="Source account"
                 >
                   {accounts.map((acc) => (
@@ -158,7 +156,7 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
                   id="tr-to"
                   value={toAccountId}
                   onChange={(e) => setToAccountId(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                  className="input-sm"
                   title="Destination account"
                 >
                   {accounts.map((acc) => (
@@ -182,10 +180,10 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
                   onChange={(e) => setAmount(e.target.value)}
                   required
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                  className="input-sm"
                 />
                 {insufficient && (
-                  <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                  <p className="text-xs text-warning mt-1">
                     Heads up: amount exceeds the source account&apos;s current balance.
                   </p>
                 )}
@@ -201,7 +199,7 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                  className="input-sm"
                 />
               </div>
 
@@ -220,7 +218,7 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
                       ? `Transfer from ${fromAccount.name} to ${toAccount.name}`
                       : 'Anything to remember about this transfer'
                   }
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                  className="input-sm"
                 />
               </div>
             </>

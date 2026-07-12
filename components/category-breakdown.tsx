@@ -7,9 +7,11 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ChartPie } from 'lucide-react'
 import { summaryApi, type CategoryBreakdownItem } from '@/lib/api'
 import { CategoryTransactionsInline } from '@/components/category-transactions-inline'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 
 type Mode = 'debit' | 'credit' | 'net' | 'investments'
 
@@ -146,20 +148,23 @@ export function CategoryBreakdown() {
 
   if (loading) {
     return (
-      <div className="bg-card border border-border rounded-lg p-6">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="card-base card-padding space-y-4">
+        <div className="flex flex-wrap gap-2">
+          <Skeleton className="h-9 w-28" />
+          <Skeleton className="h-9 w-28" />
         </div>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="space-y-1">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-2 w-full" />
+          </div>
+        ))}
       </div>
     )
   }
 
   if (error) {
-    return (
-      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-        <p className="text-sm text-destructive">{error}</p>
-      </div>
-    )
+    return <div className="alert-error">{error}</div>
   }
 
   const isEmpty = mode === 'net' ? netItems.length === 0 : breakdown.length === 0
@@ -181,7 +186,7 @@ export function CategoryBreakdown() {
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
               disabled={selectedYear === 0}
-              className="px-2 sm:px-3 py-2 sm:py-1.5 bg-accent text-foreground border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+              className="px-2 sm:px-3 py-2 sm:py-1.5 bg-card text-foreground border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring/25 focus:border-ring disabled:opacity-50"
               title="Month"
             >
               <option value={0}>All Months</option>
@@ -192,7 +197,7 @@ export function CategoryBreakdown() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-2 sm:px-3 py-2 sm:py-1.5 bg-accent text-foreground border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-2 sm:px-3 py-2 sm:py-1.5 bg-card text-foreground border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring/25 focus:border-ring"
               title="Year"
             >
               <option value={0}>All Time</option>
@@ -209,8 +214,8 @@ export function CategoryBreakdown() {
             onClick={() => setMode('debit')}
             className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-sm rounded-lg ${
               mode === 'debit'
-                ? 'bg-red-400 text-white shadow-sm'
-                : 'bg-accent text-foreground/90 hover:bg-accent/80'
+                ? 'bg-negative/15 text-negative border border-negative/30 font-medium'
+                : 'bg-accent text-foreground/90 hover:bg-accent/80 border border-transparent'
             }`}
           >
             Expenses
@@ -220,8 +225,8 @@ export function CategoryBreakdown() {
             onClick={() => setMode('credit')}
             className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-sm rounded-lg ${
               mode === 'credit'
-                ? 'bg-green-400 text-white shadow-sm'
-                : 'bg-accent text-foreground/90 hover:bg-accent/80'
+                ? 'bg-positive/15 text-positive border border-positive/30 font-medium'
+                : 'bg-accent text-foreground/90 hover:bg-accent/80 border border-transparent'
             }`}
           >
             Income
@@ -231,8 +236,8 @@ export function CategoryBreakdown() {
             onClick={() => setMode('investments')}
             className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-sm rounded-lg ${
               mode === 'investments'
-                ? 'bg-indigo-400 text-white shadow-sm'
-                : 'bg-accent text-foreground/90 hover:bg-accent/80'
+                ? 'bg-chart-3/15 text-chart-3 border border-chart-3/30 font-medium'
+                : 'bg-accent text-foreground/90 hover:bg-accent/80 border border-transparent'
             }`}
           >
             Investments
@@ -242,8 +247,8 @@ export function CategoryBreakdown() {
             onClick={() => setMode('net')}
             className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-sm rounded-lg ${
               mode === 'net'
-                ? 'bg-blue-400 text-white shadow-sm'
-                : 'bg-accent text-foreground/90 hover:bg-accent/80'
+                ? 'bg-primary/15 text-primary border border-primary/30 font-medium'
+                : 'bg-accent text-foreground/90 hover:bg-accent/80 border border-transparent'
             }`}
           >
             Net
@@ -252,17 +257,20 @@ export function CategoryBreakdown() {
       </div>
 
       {isEmpty ? (
-        <p className="text-center text-muted-foreground py-8">
-          {mode === 'debit' && 'No expenses found'}
-          {mode === 'credit' && 'No income found'}
-          {mode === 'investments' && 'No investments found'}
-          {mode === 'net' && 'No category activity found'}
-          {selectedYear !== 0 && (
-            <span className="block text-xs mt-1">
-              for {selectedMonth === 0 ? selectedYear : `${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`}
-            </span>
-          )}
-        </p>
+        <EmptyState
+          icon={ChartPie}
+          title={
+            mode === 'debit' ? 'No expenses found'
+              : mode === 'credit' ? 'No income found'
+              : mode === 'investments' ? 'No investments found'
+              : 'No category activity found'
+          }
+          body={
+            selectedYear !== 0
+              ? `for ${selectedMonth === 0 ? selectedYear : `${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`}`
+              : undefined
+          }
+        />
       ) : mode === 'net' ? (
         <div className="space-y-3">
           {netItems.map((item) => {
@@ -289,8 +297,8 @@ export function CategoryBreakdown() {
                       <span className="truncate">{item.category_name}</span>
                     </span>
                     <span
-                      className={`font-semibold tabular-nums whitespace-nowrap ${
-                        isPositive ? 'text-green-400' : 'text-red-400'
+                      className={`font-numeric font-semibold whitespace-nowrap ${
+                        isPositive ? 'text-positive' : 'text-negative'
                       }`}
                     >
                       {isPositive ? '+' : '−'}₹{formatINR2(Math.abs(item.net))}
@@ -301,7 +309,7 @@ export function CategoryBreakdown() {
                     <div className="flex-1 bg-border rounded-full h-2 overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
-                          isPositive ? 'bg-green-400' : 'bg-red-400'
+                          isPositive ? 'bg-positive' : 'bg-negative'
                         }`}
                         style={{ width: `${barWidth}%` }}
                       />
@@ -311,9 +319,9 @@ export function CategoryBreakdown() {
                   <div className="text-xs text-muted-foreground">
                     {hasBoth ? (
                       <>
-                        <span className="text-green-400">₹{formatINR2(item.income)} in</span>
+                        <span className="text-positive font-numeric">₹{formatINR2(item.income)} in</span>
                         <span className="mx-1.5">·</span>
-                        <span className="text-red-400">₹{formatINR2(item.expense)} out</span>
+                        <span className="text-negative font-numeric">₹{formatINR2(item.expense)} out</span>
                       </>
                     ) : (
                       <>
@@ -356,7 +364,7 @@ export function CategoryBreakdown() {
                       />
                       <span className="truncate">{item.category_name}</span>
                     </span>
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground font-numeric">
                       ₹{formatINR2(item.total)}
                     </span>
                   </div>
@@ -366,15 +374,15 @@ export function CategoryBreakdown() {
                       <div
                         className={`h-full rounded-full ${
                           mode === 'debit'
-                            ? 'bg-red-400'
+                            ? 'bg-negative'
                             : mode === 'investments'
-                              ? 'bg-indigo-400'
-                              : 'bg-green-400'
+                              ? 'bg-chart-3'
+                              : 'bg-positive'
                         }`}
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
-                    <span className="text-xs text-muted-foreground w-12 text-right">
+                    <span className="text-xs text-muted-foreground w-12 text-right font-numeric">
                       {percentage.toFixed(1)}%
                     </span>
                   </div>
@@ -401,17 +409,17 @@ export function CategoryBreakdown() {
           <div className="flex items-center justify-between text-sm font-semibold">
             <span className="text-foreground">Total</span>
             {mode === 'net' ? (
-              <span className={netTotal >= 0 ? 'text-green-400' : 'text-red-400'}>
+              <span className={`font-numeric ${netTotal >= 0 ? 'text-positive' : 'text-negative'}`}>
                 {netTotal >= 0 ? '+' : '−'}₹{formatINR2(Math.abs(netTotal))}
               </span>
             ) : (
-              <span className={
+              <span className={`font-numeric ${
                 mode === 'debit'
-                  ? 'text-red-400'
+                  ? 'text-negative'
                   : mode === 'investments'
-                    ? 'text-indigo-400'
-                    : 'text-green-400'
-              }>
+                    ? 'text-chart-3'
+                    : 'text-positive'
+              }`}>
                 ₹{formatINR2(total)}
               </span>
             )}

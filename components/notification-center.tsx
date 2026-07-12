@@ -31,13 +31,13 @@ const notificationIcons: Record<NotificationType, React.ElementType> = {
 }
 
 const notificationColors: Record<NotificationType, string> = {
-  budget_warning: 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30',
-  budget_exceeded: 'text-red-500 bg-red-100 dark:bg-red-900/30',
-  low_balance: 'text-red-500 bg-red-100 dark:bg-red-900/30',
-  bill_reminder: 'text-blue-500 bg-blue-100 dark:bg-blue-900/30',
-  finance_score: 'text-purple-500 bg-purple-100 dark:bg-purple-900/30',
-  spending_trend: 'text-orange-500 bg-orange-100 dark:bg-orange-900/30',
-  system: 'text-gray-500 bg-gray-100 dark:bg-gray-900/30',
+  budget_warning: 'text-warning bg-warning/10',
+  budget_exceeded: 'text-destructive bg-destructive/10',
+  low_balance: 'text-negative bg-negative/10',
+  bill_reminder: 'text-primary bg-primary/10',
+  finance_score: 'text-chart-3 bg-chart-3/10',
+  spending_trend: 'text-warning bg-warning/10',
+  system: 'text-muted-foreground bg-surface-raised',
 }
 
 export function NotificationCenter() {
@@ -144,7 +144,7 @@ export function NotificationCenter() {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-medium bg-red-500 text-white rounded-full">
+          <span className="notification-badge absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[11px] font-medium font-numeric bg-negative text-negative-foreground rounded-full">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -170,8 +170,8 @@ export function NotificationCenter() {
           {/* Notifications List */}
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+              <div className="flex items-center justify-center py-8 text-primary">
+                <div className="spinner-sm" />
               </div>
             ) : notifications.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">
@@ -216,7 +216,7 @@ export function NotificationCenter() {
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                             {notification.message}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-1">
+                          <p className="text-[11px] text-muted-foreground mt-1 font-numeric">
                             {formatTime(notification.created_at)}
                           </p>
                         </div>

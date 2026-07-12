@@ -85,7 +85,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <CursorSpotlight />
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm">
@@ -109,9 +109,10 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section - pt-16 accounts for fixed header, min-h-[calc(100vh-4rem)] ensures content below is visible */}
-      <section className="relative overflow-hidden h-[calc(100vh-4rem)] flex items-center justify-center mt-16">
+      <section className="relative overflow-hidden h-[calc(100dvh-4rem)] flex items-center justify-center mt-16">
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.35] [mask-image:radial-gradient(ellipse_at_center,black_35%,transparent_75%)]" />
           <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
         </div>
@@ -144,7 +145,7 @@ export function LandingPage() {
       </section>
 
       {/* Dashboard Preview Section */}
-      <section className="min-h-screen flex flex-col justify-center py-10">
+      <section className="min-h-dvh flex flex-col justify-center py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl not-italic">
@@ -157,14 +158,14 @@ export function LandingPage() {
 
           {/* Mock Dashboard Preview */}
           <div className="relative mx-auto max-w-7xl">
-            <div className="rounded-xl border bg-card shadow-2xl overflow-hidden">
+            <div className="rounded-xl border bg-card ring-1 ring-border shadow-[0_0_80px_-20px] shadow-primary/20 overflow-hidden">
               {/* Mock Header */}
               <div className="border-b bg-muted/30 px-5 py-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full bg-red-500" />
-                    <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                    <div className="h-3 w-3 rounded-full bg-green-500" />
+                    <div className="h-3 w-3 rounded-full bg-muted-foreground/40" />
+                    <div className="h-3 w-3 rounded-full bg-muted-foreground/40" />
+                    <div className="h-3 w-3 rounded-full bg-muted-foreground/40" />
                   </div>
                   <div className="text-sm text-muted-foreground">Dashboard Overview</div>
                 </div>
@@ -177,7 +178,7 @@ export function LandingPage() {
                   <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
                     <CardContent className="p-6">
                       <div className="text-sm font-medium text-muted-foreground">Net Worth</div>
-                      <div className="mt-2 text-3xl font-bold">$47,250.00</div>
+                      <div className="mt-2 text-3xl font-bold font-numeric">₹47,25,000</div>
                       <div className="stat-change-positive">
                         <TrendingUp className="h-4 w-4" />
                         +12.5% this month
@@ -189,7 +190,7 @@ export function LandingPage() {
                   <Card>
                     <CardContent className="p-6">
                       <div className="text-sm font-medium text-muted-foreground">Monthly Income</div>
-                      <div className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">+$5,200</div>
+                      <div className="mt-2 text-3xl font-bold text-positive font-numeric">+₹52,000</div>
                       <div className="mt-2 text-sm text-muted-foreground">From 3 sources</div>
                     </CardContent>
                   </Card>
@@ -198,7 +199,7 @@ export function LandingPage() {
                   <Card>
                     <CardContent className="p-6">
                       <div className="text-sm font-medium text-muted-foreground">Monthly Expenses</div>
-                      <div className="mt-2 text-3xl font-bold text-red-600 dark:text-red-400">-$3,450</div>
+                      <div className="mt-2 text-3xl font-bold text-negative font-numeric">-₹34,500</div>
                       <div className="mt-2 text-sm text-muted-foreground">Across 8 categories</div>
                     </CardContent>
                   </Card>
@@ -211,17 +212,17 @@ export function LandingPage() {
                       <div className="mb-4 text-lg font-semibold">Spending by Category</div>
                       <div className="space-y-3">
                         {[
-                          { name: "Housing", amount: "$1,200", percent: 35, color: "bg-blue-500" },
-                          { name: "Food & Dining", amount: "$650", percent: 19, color: "bg-green-500" },
-                          { name: "Transportation", amount: "$450", percent: 13, color: "bg-yellow-500" },
-                          { name: "Shopping", amount: "$380", percent: 11, color: "bg-purple-500" }
+                          { name: "Housing", amount: "₹12,000", percent: 35, color: "bg-chart-1" },
+                          { name: "Food & Dining", amount: "₹6,500", percent: 19, color: "bg-chart-2" },
+                          { name: "Transportation", amount: "₹4,500", percent: 13, color: "bg-chart-3" },
+                          { name: "Shopping", amount: "₹3,800", percent: 11, color: "bg-chart-4" }
                         ].map((item) => (
                           <div key={item.name} className="flex items-center gap-3">
                             <div className={`h-3 w-3 rounded-full ${item.color}`} />
                             <div className="flex-1">
                               <div className="flex justify-between">
                                 <span>{item.name}</span>
-                                <span className="text-muted-foreground">{item.amount}</span>
+                                <span className="text-muted-foreground font-numeric">{item.amount}</span>
                               </div>
                               <div className="mt-1.5 h-2 w-full rounded-full bg-muted">
                                 <div
@@ -241,16 +242,16 @@ export function LandingPage() {
                       <div className="mb-4 text-lg font-semibold">Recent Transactions</div>
                       <div className="space-y-4">
                         {[
-                          { name: "Grocery Store", category: "Food & Dining", amount: "-$85.50", date: "Today" },
-                          { name: "Salary Deposit", category: "Income", amount: "+$3,200.00", date: "Jan 15" },
-                          { name: "Electric Bill", category: "Utilities", amount: "-$124.00", date: "Jan 14" }
+                          { name: "Grocery Store", category: "Food & Dining", amount: "-₹855", date: "Today" },
+                          { name: "Salary Deposit", category: "Income", amount: "+₹32,000", date: "Jan 15" },
+                          { name: "Electric Bill", category: "Utilities", amount: "-₹1,240", date: "Jan 14" }
                         ].map((tx, i) => (
                           <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                             <div>
                               <div className="font-medium">{tx.name}</div>
                               <div className="text-sm text-muted-foreground">{tx.category} • {tx.date}</div>
                             </div>
-                            <div className={tx.amount.startsWith("+") ? "text-lg font-semibold text-green-600 dark:text-green-400" : "text-lg font-semibold"}>
+                            <div className={tx.amount.startsWith("+") ? "text-lg font-semibold text-positive font-numeric" : "text-lg font-semibold text-negative font-numeric"}>
                               {tx.amount}
                             </div>
                           </div>
@@ -279,7 +280,7 @@ export function LandingPage() {
 
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
-              <Card key={feature.title} className="relative overflow-hidden transition-all hover:shadow-lg">
+              <Card key={feature.title} className="relative overflow-hidden transition-colors hover:border-primary/50">
                 <CardContent className="p-6">
                   <div className="icon-box-lg mb-4">
                     <feature.icon className="h-6 w-6 text-primary" />

@@ -7,9 +7,11 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import { summaryApi, type MonthlySummary } from '@/lib/api'
 import { MonthComparison } from './month-comparison'
 import { AccountSelector } from '@/components/account-selector'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface MonthlySummaryCardProps {
   refreshTrigger?: number
@@ -54,9 +56,19 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
 
   if (loading) {
     return (
-      <div className="bg-card border border-border rounded-xl shadow-sm p-6">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      <div className="card-base p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4">
+          <Skeleton className="h-5 w-40" />
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-9 w-28" />
+            <Skeleton className="h-9 w-28" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
         </div>
       </div>
     )
@@ -64,14 +76,14 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
 
   if (error) {
     return (
-      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-        <p className="text-sm text-red-400">{error}</p>
+      <div className="alert-error">
+        <p className="text-sm">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl p-3 sm:p-4 shadow-sm">
+    <div className="card-base p-3 sm:p-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4">
         <h2 className="text-sm sm:text-base font-semibold text-foreground">Monthly Summary</h2>
 
@@ -86,7 +98,7 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="flex-1 sm:flex-none px-2 sm:px-3 py-2 bg-accent text-foreground border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="h-9 px-3 bg-card border border-border rounded-md text-xs font-medium text-foreground"
             title="Select month"
           >
             {months.map((month, idx) => (
@@ -99,7 +111,7 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="px-2 sm:px-3 py-2 bg-accent text-foreground border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="h-9 px-3 bg-card border border-border rounded-md text-xs font-medium text-foreground"
             title="Select year"
           >
             {[2024, 2025, 2026].map(year => (
@@ -112,34 +124,40 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {/* Income */}
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2 sm:p-3">
-            <div className="text-[10px] sm:text-xs text-green-400 font-medium">Income</div>
-            <div className="text-sm sm:text-lg font-bold text-green-500 mt-0.5 sm:mt-1 truncate">
+          <div className="bg-positive/5 border border-positive/20 rounded-lg p-2 sm:p-3">
+            <div className="flex items-center gap-1 text-[11px] sm:text-xs text-positive font-medium">
+              <TrendingUp className="h-3 w-3" />
+              Income
+            </div>
+            <div className="text-sm sm:text-lg font-bold text-positive mt-0.5 sm:mt-1 truncate font-numeric">
               ₹{summary.total_income.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </div>
-            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
+            <div className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
               {summary.income_count} transaction{summary.income_count !== 1 ? 's' : ''}
             </div>
           </div>
 
           {/* Expenses */}
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 sm:p-3">
-            <div className="text-[10px] sm:text-xs text-red-400 font-medium">Expenses</div>
-            <div className="text-sm sm:text-lg font-bold text-red-500 mt-0.5 sm:mt-1 truncate">
+          <div className="bg-negative/5 border border-negative/20 rounded-lg p-2 sm:p-3">
+            <div className="flex items-center gap-1 text-[11px] sm:text-xs text-negative font-medium">
+              <TrendingDown className="h-3 w-3" />
+              Expenses
+            </div>
+            <div className="text-sm sm:text-lg font-bold text-negative mt-0.5 sm:mt-1 truncate font-numeric">
               ₹{summary.total_expenses.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </div>
-            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
+            <div className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
               {summary.expense_count} transaction{summary.expense_count !== 1 ? 's' : ''}
             </div>
           </div>
 
           {/* Invested (MF + FD) — capital allocation, not counted as expense */}
-          <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-2 sm:p-3">
-            <div className="text-[10px] sm:text-xs text-indigo-400 font-medium">Invested</div>
-            <div className="text-sm sm:text-lg font-bold text-indigo-500 mt-0.5 sm:mt-1 truncate">
+          <div className="bg-chart-3/5 border border-chart-3/20 rounded-lg p-2 sm:p-3">
+            <div className="text-[11px] sm:text-xs text-chart-3 font-medium">Invested</div>
+            <div className="text-sm sm:text-lg font-bold text-chart-3 mt-0.5 sm:mt-1 truncate font-numeric">
               ₹{summary.total_invested.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </div>
-            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
+            <div className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 hidden sm:block">
               MF + FD
             </div>
           </div>
@@ -147,20 +165,20 @@ export function MonthlySummaryCard({ refreshTrigger }: MonthlySummaryCardProps =
           {/* Net */}
           <div className={`border rounded-lg p-2 sm:p-3 ${
             summary.net >= 0
-              ? 'bg-blue-500/10 border-blue-500/20'
-              : 'bg-orange-500/10 border-orange-500/20'
+              ? 'bg-positive/5 border-positive/20'
+              : 'bg-warning/5 border-warning/20'
           }`}>
-            <div className={`text-[10px] sm:text-xs font-medium ${
-              summary.net >= 0 ? 'text-blue-400' : 'text-orange-400'
+            <div className={`text-[11px] sm:text-xs font-medium ${
+              summary.net >= 0 ? 'text-positive' : 'text-warning'
             }`}>
               Net
             </div>
-            <div className={`text-sm sm:text-lg font-bold mt-0.5 sm:mt-1 truncate ${
-              summary.net >= 0 ? 'text-blue-500' : 'text-orange-500'
+            <div className={`text-sm sm:text-lg font-bold mt-0.5 sm:mt-1 truncate font-numeric ${
+              summary.net >= 0 ? 'text-positive' : 'text-warning'
             }`}>
               ₹{summary.net.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </div>
-            <div className={`text-[10px] sm:text-xs mt-0.5 hidden sm:block ${
+            <div className={`text-[11px] sm:text-xs mt-0.5 hidden sm:block ${
               summary.net >= 0 ? 'text-muted-foreground' : 'text-muted-foreground'
             }`}>
               {summary.net >= 0 ? 'Surplus' : 'Deficit'}

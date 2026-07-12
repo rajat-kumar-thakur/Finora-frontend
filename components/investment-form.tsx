@@ -84,7 +84,7 @@ export function InvestmentForm({ open, onOpenChange, onSuccess, investment }: In
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md text-sm">
+            <div className="alert-error">
               {error}
             </div>
           )}

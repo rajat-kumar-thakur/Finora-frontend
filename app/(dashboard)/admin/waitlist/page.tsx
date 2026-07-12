@@ -192,31 +192,15 @@ export default function AdminWaitlistPage() {
 
   function getStatusBadge(userItem: UserProfile) {
     if (!userItem.is_active) {
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-          Disabled
-        </span>
-      )
+      return <span className="badge-muted">Disabled</span>
     }
     switch (userItem.status) {
       case 'pending':
-        return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
-            Pending
-          </span>
-        )
+        return <span className="badge-warning">Pending</span>
       case 'approved':
-        return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-            Approved
-          </span>
-        )
+        return <span className="badge-success">Approved</span>
       case 'rejected':
-        return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-            Rejected
-          </span>
-        )
+        return <span className="badge-destructive">Rejected</span>
       default:
         return null
     }
@@ -236,7 +220,7 @@ export default function AdminWaitlistPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
           <p className="text-lg font-medium text-foreground mb-2">
             Access Denied
           </p>
@@ -256,18 +240,18 @@ export default function AdminWaitlistPage() {
   ]
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
-          <p className="text-muted-foreground mt-1">
+    <div className="page-container stagger-children">
+      <div className="header-row">
+        <div className="page-header">
+          <h1 className="page-title">User Management</h1>
+          <p className="page-subtitle">
             Manage user registrations and account access
           </p>
         </div>
         <button
           onClick={loadData}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-[#2F2F33] text-foreground hover:bg-gray-50 dark:hover:bg-[#2F2F33] disabled:opacity-50 transition-colors"
+          className="btn-outline"
         >
           <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
           Refresh
@@ -276,60 +260,60 @@ export default function AdminWaitlistPage() {
 
       {/* Error Alert */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 flex items-center gap-2">
+        <div className="alert-error flex items-center gap-2">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white dark:bg-[#1F1F23] rounded-xl p-4 border border-gray-200 dark:border-[#2F2F33]">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="stat-card">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            <div className="p-2 rounded-lg bg-warning/10">
+              <Clock className="w-5 h-5 text-warning" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-2xl font-bold text-foreground font-numeric">
                 {stats.pending}
               </p>
               <p className="text-sm text-muted-foreground">Pending</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#1F1F23] rounded-xl p-4 border border-gray-200 dark:border-[#2F2F33]">
+        <div className="stat-card">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <UserCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <div className="p-2 rounded-lg bg-positive/10">
+              <UserCheck className="w-5 h-5 text-positive" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-2xl font-bold text-foreground font-numeric">
                 {stats.active}
               </p>
               <p className="text-sm text-muted-foreground">Active</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#1F1F23] rounded-xl p-4 border border-gray-200 dark:border-[#2F2F33]">
+        <div className="stat-card">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-              <UserX className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <div className="p-2 rounded-lg bg-negative/10">
+              <UserX className="w-5 h-5 text-negative" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-2xl font-bold text-foreground font-numeric">
                 {stats.disabled}
               </p>
               <p className="text-sm text-muted-foreground">Disabled</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#1F1F23] rounded-xl p-4 border border-gray-200 dark:border-[#2F2F33]">
+        <div className="stat-card">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Users className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-2xl font-bold text-foreground font-numeric">
                 {stats.total}
               </p>
               <p className="text-sm text-muted-foreground">Total Users</p>
@@ -339,37 +323,31 @@ export default function AdminWaitlistPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-[#2F2F33] mb-6">
-        <nav className="-mb-px flex gap-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+      <nav className="tab-container">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              'tab-item',
+              activeTab === tab.id ? 'tab-active' : 'tab-inactive'
+            )}
+          >
+            {tab.label}
+            <span
               className={cn(
-                'py-3 px-1 border-b-2 font-medium text-sm transition-colors',
-                activeTab === tab.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300 dark:hover:border-gray-600'
+                'ml-2 font-numeric',
+                activeTab === tab.id ? 'badge-primary' : 'badge-muted'
               )}
             >
-              {tab.label}
-              <span
-                className={cn(
-                  'ml-2 py-0.5 px-2 rounded-full text-xs',
-                  activeTab === tab.id
-                    ? 'bg-primary/10 text-primary'
-                    : 'bg-gray-100 dark:bg-gray-800 text-muted-foreground'
-                )}
-              >
-                {tab.count}
-              </span>
-            </button>
-          ))}
-        </nav>
-      </div>
+              {tab.count}
+            </span>
+          </button>
+        ))}
+      </nav>
 
       {/* Users Table */}
-      <div className="bg-white dark:bg-[#1F1F23] rounded-xl border border-gray-200 dark:border-[#2F2F33] overflow-hidden">
+      <div className="card-base overflow-x-auto">
         {loading ? (
           <div className="p-8 text-center">
             <div className="spinner mx-auto" />
@@ -390,29 +368,29 @@ export default function AdminWaitlistPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-[#2F2F33] bg-gray-50 dark:bg-[#0F0F12]">
-                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-border bg-muted">
+                  <th className="text-left py-3 px-4 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
                     User
                   </th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="text-left py-3 px-4 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
                     Status
                   </th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="text-left py-3 px-4 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
                     Last Login
                   </th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="text-left py-3 px-4 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
                     Signed Up
                   </th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="text-right py-3 px-4 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-[#2F2F33]">
+              <tbody className="divide-y divide-border">
                 {users.map((userItem) => (
                   <tr
                     key={userItem.id}
-                    className="hover:bg-gray-50 dark:hover:bg-[#2F2F33]/50 transition-colors"
+                    className="hover:bg-accent/30 transition-colors"
                   >
                     <td className="py-4 px-4">
                       <div>
@@ -428,7 +406,7 @@ export default function AdminWaitlistPage() {
                     <td className="py-4 px-4">
                       <span
                         className={cn(
-                          'text-sm',
+                          'text-sm font-numeric',
                           userItem.last_login
                             ? 'text-foreground'
                             : 'text-muted-foreground'
@@ -438,7 +416,7 @@ export default function AdminWaitlistPage() {
                       </span>
                     </td>
                     <td className="py-4 px-4">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground font-numeric">
                         {formatDateIST(userItem.created_at)}
                       </span>
                     </td>
@@ -451,7 +429,7 @@ export default function AdminWaitlistPage() {
                               onClick={() => handleApprove(userItem.id)}
                               disabled={actionLoading === userItem.id}
                               title="Approve user"
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-positive/30 text-positive hover:bg-positive/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {actionLoading === userItem.id ? (
                                 <div className="spinner-sm" />
@@ -464,7 +442,7 @@ export default function AdminWaitlistPage() {
                               onClick={() => handleReject(userItem.id)}
                               disabled={actionLoading === userItem.id}
                               title="Reject user"
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-negative/30 text-negative hover:bg-negative/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {actionLoading === userItem.id ? (
                                 <div className="spinner-sm" />
@@ -489,10 +467,10 @@ export default function AdminWaitlistPage() {
                                 : 'Enable user'
                             }
                             className={cn(
-                              'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+                              'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
                               userItem.is_active
-                                ? 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                                : 'border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30'
+                                ? 'border-negative/30 text-negative hover:bg-negative/10'
+                                : 'border-positive/30 text-positive hover:bg-positive/10'
                             )}
                           >
                             {actionLoading === userItem.id ? (
@@ -508,7 +486,7 @@ export default function AdminWaitlistPage() {
 
                         {/* Admin badge */}
                         {userItem.is_admin && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-chart-3/10 text-chart-3">
                             Admin
                           </span>
                         )}

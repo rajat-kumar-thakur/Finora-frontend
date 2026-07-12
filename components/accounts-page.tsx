@@ -88,9 +88,8 @@ export function AccountsPage() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setTransferOpen(true)}
-            disabled={accounts.length < 2}
             className="btn-outline"
-            title={accounts.length < 2 ? 'Add a second account to enable transfers' : undefined}
+            title="Transfer between accounts"
           >
             <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
             Transfer

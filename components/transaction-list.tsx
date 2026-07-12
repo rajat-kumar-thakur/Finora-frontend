@@ -437,9 +437,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
               </button>
               <button
                 onClick={() => setTransferOpen(true)}
-                disabled={accounts.length < 2}
                 className="btn-outline"
-                title={accounts.length < 2 ? 'Add a second account first' : undefined}
+                title="Transfer between accounts"
               >
                 <ArrowLeftRight className="h-4 w-4" />
                 Transfer
@@ -839,9 +838,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
           </button>
           <button
             onClick={() => setTransferOpen(true)}
-            disabled={accounts.length < 2}
             className="btn-outline"
-            title={accounts.length < 2 ? 'Add a second account to enable transfers' : 'Transfer between accounts'}
+            title="Transfer between accounts"
           >
             <ArrowLeftRight className="h-4 w-4" />
             Transfer
@@ -960,9 +958,8 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
         <div className="hidden lg:flex items-center justify-end gap-2">
           <button
             onClick={() => setTransferOpen(true)}
-            disabled={accounts.length < 2}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-card hover:bg-accent disabled:opacity-50 transition-colors"
-            title={accounts.length < 2 ? 'Add a second account to enable transfers' : 'Transfer between accounts'}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-card hover:bg-accent transition-colors"
+            title="Transfer between accounts"
           >
             <ArrowLeftRight className="h-3.5 w-3.5" />
             Transfer

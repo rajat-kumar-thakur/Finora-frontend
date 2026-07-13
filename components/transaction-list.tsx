@@ -969,7 +969,17 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
 
       {/* Desktop Table View */}
       <div className="hidden lg:block overflow-x-auto rounded-lg border border-border bg-card">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm table-fixed">
+          <colgroup>
+            <col style={{ width: '11%' }} />
+            <col style={{ width: '21%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '10%' }} />
+          </colgroup>
           <thead className="bg-muted/50 border-b border-border">
             <tr>
               <th className="text-left p-3 text-[11px] font-mono font-medium uppercase tracking-[0.08em] text-muted-foreground">Date</th>
@@ -1330,13 +1340,13 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     })}
                   </td>
                   <td className="px-3 py-2 text-foreground">
-                    <div className="max-w-[300px] truncate whitespace-nowrap" style={{ direction: 'rtl', textAlign: 'left' }} title={tx.description}>
+                    <div className="truncate" title={tx.description}>
                       {tx.description}
                     </div>
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground" title={tx.account_name ?? undefined}>
-                    <div className="flex items-center gap-1">
-                      <span>{tx.account_name ?? '—'}</span>
+                  <td className="px-3 py-2 overflow-hidden text-xs text-muted-foreground" title={tx.account_name ?? undefined}>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="truncate">{tx.account_name ?? '—'}</span>
                       {tx.is_transfer && (
                         <span
                           className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded-full bg-chart-1/10 text-chart-1"
@@ -1347,7 +1357,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 overflow-hidden">
                     {editingCategoryId === tx.id ? (
                       <select
                         value={tx.category_id || ''}
@@ -1366,7 +1376,7 @@ export function TransactionList({ filters, refreshTrigger, onUpdate, compact = f
                     ) : (
                       <button
                         onClick={() => setEditingCategoryId(tx.id)}
-                        className="text-xs px-2 py-1 rounded bg-accent/50 hover:bg-accent text-foreground transition-colors whitespace-nowrap"
+                        className="text-xs px-2 py-1 rounded bg-accent/50 hover:bg-accent text-foreground transition-colors truncate max-w-full"
                       >
                         {category ? `${category.icon} ${category.name}` : 'Uncategorized'}
                       </button>

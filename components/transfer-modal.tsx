@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { ArrowUpDown } from 'lucide-react'
 import { transactionApi } from '@/lib/api'
 import { bankAccountApi, type BankAccount } from '@/lib/api/bank-accounts'
 
@@ -77,6 +78,24 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
     parsedAmount > 0 &&
     !!date
 
+  const handleSwap = () => {
+    setFromAccountId(toAccountId)
+    setToAccountId(fromAccountId)
+  }
+
+  // Picking the account already held by the other side swaps the pair rather
+  // than blocking the choice — otherwise a two-account user can never reverse
+  // the direction, since each dropdown would offer only its current selection.
+  const handleFromChange = (id: string) => {
+    if (id === toAccountId) setToAccountId(fromAccountId)
+    setFromAccountId(id)
+  }
+
+  const handleToChange = (id: string) => {
+    if (id === fromAccountId) setFromAccountId(toAccountId)
+    setToAccountId(id)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!canSubmit) return
@@ -136,16 +155,30 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
                 <select
                   id="tr-from"
                   value={fromAccountId}
-                  onChange={(e) => setFromAccountId(e.target.value)}
+                  onChange={(e) => handleFromChange(e.target.value)}
                   className="input-sm"
                   title="Source account"
                 >
                   {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id} disabled={acc.id === toAccountId}>
+                    <option key={acc.id} value={acc.id}>
                       {acc.is_primary ? '⭐ ' : ''}{acc.name} — ₹{acc.current_balance.toLocaleString('en-IN')}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-x-0 top-1/2 h-px bg-border" aria-hidden="true" />
+                <button
+                  type="button"
+                  onClick={handleSwap}
+                  disabled={!fromAccountId || !toAccountId || saving}
+                  title="Reverse direction"
+                  aria-label="Reverse transfer direction"
+                  className="relative rounded-full border border-border bg-popover p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ArrowUpDown className="h-4 w-4" />
+                </button>
               </div>
 
               <div>
@@ -155,12 +188,12 @@ export function TransferModal({ onClose, onSaved, defaultFromAccountId }: Transf
                 <select
                   id="tr-to"
                   value={toAccountId}
-                  onChange={(e) => setToAccountId(e.target.value)}
+                  onChange={(e) => handleToChange(e.target.value)}
                   className="input-sm"
                   title="Destination account"
                 >
                   {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id} disabled={acc.id === fromAccountId}>
+                    <option key={acc.id} value={acc.id}>
                       {acc.is_primary ? '⭐ ' : ''}{acc.name} — ₹{acc.current_balance.toLocaleString('en-IN')}
                     </option>
                   ))}

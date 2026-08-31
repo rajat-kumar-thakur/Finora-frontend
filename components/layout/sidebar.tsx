@@ -26,6 +26,7 @@ import {
   Shield,
   Landmark,
   Wallet,
+  Flag,
 } from "lucide-react"
 
 import Link from "next/link"
@@ -183,6 +184,9 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
                   </NavItem>
                   <NavItem href="/accounts" icon={Wallet}>
                     Accounts
+                  </NavItem>
+                  <NavItem href="/goals" icon={Flag}>
+                    Goals
                   </NavItem>
                   <NavItem href="/categories" icon={FolderKanban}>
                     Categories

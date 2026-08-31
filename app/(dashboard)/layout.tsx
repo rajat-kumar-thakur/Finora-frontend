@@ -31,6 +31,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/upload': 'Upload',
   '/transactions': 'Transactions',
   '/accounts': 'Accounts',
+  '/goals': 'Goals',
   '/categories': 'Categories',
   '/investments': 'Portfolio',
   '/fixed-deposits': 'Fixed Deposits',
@@ -57,7 +58,14 @@ export default function Layout({
   const token = typeof window !== 'undefined' ? getAccessToken() : null
   const isAuthenticated = token && token.trim() !== ''
 
-  const pageTitle = PAGE_TITLES[pathname] ?? ''
+  // Exact match first; then fall back to the closest parent so dynamic routes
+  // such as /goals/<id> still get a breadcrumb instead of an empty one.
+  const pageTitle =
+    PAGE_TITLES[pathname] ??
+    PAGE_TITLES[
+      Object.keys(PAGE_TITLES).find((p) => pathname.startsWith(`${p}/`)) ?? ''
+    ] ??
+    ''
 
   useEffect(() => {
     if (!isAuthenticated) {

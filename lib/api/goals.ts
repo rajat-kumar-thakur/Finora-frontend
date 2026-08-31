@@ -9,6 +9,9 @@
 
 import { apiClient } from './client'
 
+// 'bank_account' is legacy-only: bank balances are no longer allocatable (see
+// asset_registry_service.py), but the member stays so any allocation row stored
+// before that change still parses — it resolves to nothing and reads as stale.
 export type GoalSourceType = 'investment' | 'fixed_deposit' | 'bank_account'
 
 export type GoalTrackStatus =
@@ -112,7 +115,19 @@ export interface GoalsOverview {
   over_allocated_sources: OverAllocatedSource[]
 }
 
-/** An allocatable asset plus how much of it is still free to claim. */
+/**
+ * An allocatable asset, split into three shares of `current_value`: what other
+ * goals claim, what the goal being edited already holds, and what nobody has
+ * claimed.
+ *
+ * `available_*` is NOT one of those three — it is the ceiling on what this goal
+ * may claim (`current_value - claimed_by_others`), so it INCLUDES
+ * `this_goal_allocated_*`, because saving REPLACES this goal's claim rather
+ * than adding to it. Validate against `available_*`; label with the shares.
+ *
+ * Every share is rounded server-side to 1dp independently, so they can sum to
+ * 99.9 or 100.1. Never derive one by subtracting the others.
+ */
 export interface AssetSourceWithHeadroom {
   source_type: GoalSourceType
   source_id: string
@@ -122,8 +137,16 @@ export interface AssetSourceWithHeadroom {
   current_value: number
   claimed_by_others_amount: number
   claimed_by_others_percentage: number
+  /** Ceiling for this goal's next write — includes what it already holds. */
   available_amount: number
   available_percentage: number
+  /** What this goal's existing claim is worth now (capped display figure). */
+  this_goal_allocated_amount: number
+  this_goal_allocated_percentage: number
+  /** Free after every goal, this one included. */
+  unclaimed_amount: number
+  unclaimed_percentage: number
+  /** The raw stored claim, for prefilling the edit form. Null when there is none. */
   this_goal_mode: AllocationMode | null
   this_goal_percent: number | null
   this_goal_amount: number | null

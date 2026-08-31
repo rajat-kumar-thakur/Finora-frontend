@@ -9,7 +9,6 @@
 import { useState, useEffect } from 'react'
 import { NetWorthCard } from '@/components/net-worth-card'
 import { MonthlySummaryCard } from '@/components/monthly-summary'
-import { GoalsOverviewCard } from '@/components/goals-overview-card'
 import { TransactionList } from '@/components/transaction-list'
 import Link from 'next/link'
 
@@ -55,9 +54,6 @@ export default function DashboardPage() {
 
             {/* Monthly Summary */}
             <MonthlySummaryCard refreshTrigger={refreshTrigger} />
-
-            {/* Goals — what the money is set aside for */}
-            <GoalsOverviewCard refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Right Column - Recent Transactions */}

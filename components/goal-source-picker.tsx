@@ -25,6 +25,60 @@ import {
 } from '@/lib/api/goals'
 import { formatCompactINR, formatCurrency, getApiErrorMessage } from '@/lib/utils'
 
+/** Anything under a paisa is float noise, not a claim. */
+const CLAIM_EPSILON = 0.01
+
+/**
+ * A share as a whole percent. Floors a real-but-tiny share to "<1%" rather than
+ * rounding it away to "0%" — these labels exist specifically to stop a claim
+ * being under-reported.
+ */
+function sharePct(p: number): string {
+  return p > 0 && p < 0.5 ? '<1%' : `${Math.round(p)}%`
+}
+
+/**
+ * The one honest line about an asset, short enough for a native <option>.
+ *
+ * Decides its SHAPE from the amounts and fills in numbers from the percentages.
+ * The percentages arrive rounded to 1dp, so 99.96% is already indistinguishable
+ * from 100% by the time it gets here — "100% free" has to be a structural claim
+ * ("nothing is claimed at all"), never a rounded one.
+ *
+ * Deliberately does not reconcile to 100%: an over-allocated asset genuinely has
+ * shares summing past it, and papering over that is how the picker came to call
+ * a fully-claimed FD "100% free".
+ */
+function headroomSummary(s: AssetSourceWithHeadroom): string {
+  if (s.current_value <= 0) return 'no value'
+
+  const mine = s.this_goal_allocated_amount > CLAIM_EPSILON
+  const others = s.claimed_by_others_amount > CLAIM_EPSILON
+  const free = s.unclaimed_amount > CLAIM_EPSILON
+
+  if (!mine && !others) return '100% free'
+
+  if (mine && !others) {
+    return free
+      ? `${sharePct(s.this_goal_allocated_percentage)} in this goal · ${sharePct(s.unclaimed_percentage)} free`
+      : '100% in this goal'
+  }
+
+  if (!mine) {
+    return free
+      ? `${sharePct(s.unclaimed_percentage)} free · ${sharePct(s.claimed_by_others_percentage)} in other goals`
+      : 'fully claimed by other goals'
+  }
+
+  // All three in play — terse, because this is the rare case.
+  const parts = [
+    `${sharePct(s.this_goal_allocated_percentage)} here`,
+    `${sharePct(s.claimed_by_others_percentage)} other goals`,
+  ]
+  if (free) parts.push(`${sharePct(s.unclaimed_percentage)} free`)
+  return parts.join(' · ')
+}
+
 interface GoalSourcePickerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -114,6 +168,25 @@ export function GoalSourcePicker({
         s.current_value > 0,
     )
   }, [sources, selected, selectedKey])
+
+  /**
+   * Class peers the bulk apply would silently overwrite. Only relevant while
+   * "apply to all" is ticked — otherwise nothing but `selected` is written.
+   */
+  const replacedPeers = useMemo(
+    () =>
+      applyToClass
+        ? classPeers.filter((p) => p.this_goal_allocated_amount > CLAIM_EPSILON)
+        : [],
+    [applyToClass, classPeers],
+  )
+
+  /**
+   * Add mode landed on an asset this goal already funds. In edit mode replacing
+   * is the intent, so it needs no warning.
+   */
+  const replacesSelected =
+    !editing && !!selected && selected.this_goal_allocated_amount > CLAIM_EPSILON
 
   const numeric = Number(value)
   const hasValue = value.trim() !== '' && Number.isFinite(numeric) && numeric > 0
@@ -229,17 +302,13 @@ export function GoalSourcePicker({
                   <optgroup key={assetClass} label={assetClass}>
                     {items.map((s) => {
                       const key = `${s.source_type}:${s.source_id}`
-                      const free =
-                        s.current_value <= 0
-                          ? 'no value'
-                          : `${s.available_percentage.toFixed(0)}% free`
                       return (
                         <option
                           key={key}
                           value={key}
                           disabled={s.current_value <= 0}
                         >
-                          {s.name} — {formatCompactINR(s.current_value)} · {free}
+                          {s.name} — {formatCompactINR(s.current_value)} · {headroomSummary(s)}
                         </option>
                       )
                     })}
@@ -262,16 +331,104 @@ export function GoalSourcePicker({
                   </span>
                   <span className="font-numeric text-foreground">
                     {formatCurrency(selected.claimed_by_others_amount)}
-                    {' '}({selected.claimed_by_others_percentage.toFixed(0)}%)
+                    {' '}({sharePct(selected.claimed_by_others_percentage)})
                   </span>
                 </div>
+
+                {/* Only shown when there is one. With no claim by this goal,
+                    "unclaimed" and "can claim up to" are the same number, and
+                    printing it twice is noise. */}
+                {selected.this_goal_allocated_amount > CLAIM_EPSILON && (
+                  <>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">In this goal already</span>
+                      <span className="font-numeric text-foreground">
+                        {formatCurrency(selected.this_goal_allocated_amount)}
+                        {' '}({sharePct(selected.this_goal_allocated_percentage)})
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Unclaimed by any goal</span>
+                      <span className="font-numeric text-foreground">
+                        {formatCurrency(selected.unclaimed_amount)}
+                        {' '}({sharePct(selected.unclaimed_percentage)})
+                      </span>
+                    </div>
+                  </>
+                )}
+
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Free to allocate</span>
+                  <span className="text-muted-foreground">This goal can claim up to</span>
                   <span className="font-numeric text-positive">
                     {formatCurrency(selected.available_amount)}
-                    {' '}({selected.available_percentage.toFixed(0)}%)
+                    {' '}({sharePct(selected.available_percentage)})
                   </span>
                 </div>
+
+                {selected.this_goal_allocated_amount > CLAIM_EPSILON && (
+                  <p className="text-[11px] text-muted-foreground pt-1.5 mt-1.5 border-t border-border/60">
+                    Includes the{' '}
+                    <span className="font-numeric">
+                      {formatCurrency(selected.this_goal_allocated_amount)}
+                    </span>{' '}
+                    this goal already holds — saving replaces that claim, it is not
+                    added on top.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* The write is a REPLACE per (goal, asset) — see
+                upsert_allocations — so a claim this goal already holds is
+                overwritten, not added to. In edit mode that is the whole point,
+                but in add mode, and for every peer swept up by "apply to all",
+                it would otherwise happen with no warning at all. */}
+            {(replacesSelected || replacedPeers.length > 0) && (
+              <div className="alert-warning text-sm">
+                {replacesSelected && selected ? (
+                  <>
+                    <span className="font-medium">
+                      {goalName} already claims this asset
+                    </span>
+                    {' — '}
+                    {selected.this_goal_mode === 'amount' ? (
+                      <>a fixed{' '}
+                        <span className="font-numeric">
+                          {formatCurrency(selected.this_goal_amount ?? 0)}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-numeric">
+                          {selected.this_goal_percent ?? 0}%
+                        </span>
+                        {' '}of it
+                      </>
+                    )}
+                    , worth{' '}
+                    <span className="font-numeric">
+                      {formatCurrency(selected.this_goal_allocated_amount)}
+                    </span>{' '}
+                    today. Saving replaces that claim rather than adding to it
+                    {replacedPeers.length > 0 && (
+                      <>
+                        , and does the same to {replacedPeers.length} other holding
+                        {replacedPeers.length === 1 ? '' : 's'} in this class
+                      </>
+                    )}.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium">
+                      Applying to all {selected?.asset_class} replaces existing claims
+                    </span>
+                    {' — '}
+                    {replacedPeers.length} other holding
+                    {replacedPeers.length === 1 ? '' : 's'} in this class
+                    {replacedPeers.length === 1 ? ' is' : ' are'} already funding
+                    {' '}{goalName}, and will be overwritten with this share.
+                  </>
+                )}
               </div>
             )}
 

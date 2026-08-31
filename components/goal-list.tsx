@@ -93,7 +93,7 @@ export function GoalList() {
                 {formatCompactINR(overview.total_allocatable)}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                Investments, active deposits and bank balances
+                Investments and active deposits
               </div>
             </div>
             <div className="stat-card">

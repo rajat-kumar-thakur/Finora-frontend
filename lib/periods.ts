@@ -21,7 +21,7 @@ export interface CalendarDay {
 export interface ComparisonRange {
   start_date: string
   end_date: string
-  /** e.g. "vs Aug 1–23", "vs August 2026", "vs 2025", "vs Jan 1–Sep 23, 2025" */
+  /** e.g. "vs August 2026", "vs 2025", "vs Jan 1–Sep 23, 2025" */
   label: string
 }
 
@@ -56,9 +56,7 @@ function endOf(year: number, month: number, day: number): string {
  *
  * - year 0 (All Time) → null
  * - a period that starts after today → null (nothing to compare yet)
- * - a completed month → the full previous month; an in-progress month → the
- *   same days of the previous month (Sep 1–23 → Aug 1–23), clamped to that
- *   month's length (Mar 1–31 → Feb 1–28/29)
+ * - a month (completed or in progress) → the full previous month
  * - month 0 (whole year): a completed year → the full previous year; the
  *   in-progress year → Jan 1 through the same day last year (Feb 29 clamped)
  */
@@ -85,22 +83,9 @@ export function previousRange(year: number, month: number, today: CalendarDay): 
 
   const prevMonth = month === 1 ? 12 : month - 1
   const prevYear = month === 1 ? year - 1 : year
-  const prevLast = lastDayOfMonth(prevYear, prevMonth)
-
-  if (selected < current) {
-    return {
-      start_date: startOf(prevYear, prevMonth, 1),
-      end_date: endOf(prevYear, prevMonth, prevLast),
-      label: `vs ${MONTH_LONG[prevMonth - 1]} ${prevYear}`,
-    }
-  }
-
-  const day = Math.min(today.day, prevLast)
   return {
     start_date: startOf(prevYear, prevMonth, 1),
-    end_date: endOf(prevYear, prevMonth, day),
-    label: day === 1
-      ? `vs ${MONTH_SHORT[prevMonth - 1]} 1`
-      : `vs ${MONTH_SHORT[prevMonth - 1]} 1–${day}`,
+    end_date: endOf(prevYear, prevMonth, lastDayOfMonth(prevYear, prevMonth)),
+    label: `vs ${MONTH_LONG[prevMonth - 1]} ${prevYear}`,
   }
 }

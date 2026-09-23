@@ -193,6 +193,43 @@ class ApiClient {
   }
 
   /**
+   * POST that hands back the raw Response, for streamed (SSE) bodies.
+   * Same auth and single refresh-and-retry as request(); a non-2xx becomes an
+   * ApiError carrying the JSON body so getApiErrorMessage can render it.
+   * Network failures and aborts propagate as thrown by fetch.
+   */
+  async stream(
+    endpoint: string,
+    data: unknown,
+    signal?: AbortSignal,
+    isRetry: boolean = false
+  ): Promise<Response> {
+    const response = await fetch(this.buildUrl(endpoint), {
+      method: 'POST',
+      headers: this.getHeaders({ Accept: 'text/event-stream' }),
+      body: JSON.stringify(data),
+      signal,
+    })
+
+    if (response.status === 401 && !isRetry) {
+      if (await this.tryRefreshToken()) {
+        return this.stream(endpoint, data, signal, true)
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login'
+      }
+      throw new ApiError(401, 'Unauthorized', { detail: 'Session expired' })
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null)
+      throw new ApiError(response.status, response.statusText, errorData)
+    }
+
+    return response
+  }
+
+  /**
    * Set auth token retrieval function
    * To be called when auth is implemented
    */

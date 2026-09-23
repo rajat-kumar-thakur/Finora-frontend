@@ -36,6 +36,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/investments': 'Portfolio',
   '/fixed-deposits': 'Fixed Deposits',
   '/insights': 'Insights',
+  '/advisor': 'Advisor',
   '/budgets': 'Budgets',
   '/finance-score': 'Finance Score',
   '/recurring-payments': 'Recurring Bills',

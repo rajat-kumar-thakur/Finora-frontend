@@ -23,10 +23,15 @@ export interface CategoryBreakdownItem {
   category_name: string
   total: number
   count: number
+  // Present only when a compare range was requested. Categories active only in
+  // the compare range come back with total 0.
+  previous_total?: number
+  previous_count?: number
 }
 
 export interface CategoryBreakdownResponse {
   breakdown: CategoryBreakdownItem[]
+  comparison?: { start_date: string; end_date: string }
 }
 
 export interface NetWorthAccountBreakdown {
@@ -73,6 +78,9 @@ export const summaryApi = {
     // 'exclude' = spending view (no investments), 'only' = investments view,
     // 'include' = net view (investments counted as outflow)
     investments?: 'exclude' | 'only' | 'include'
+    // Both or neither: a second range aggregated with the same filters
+    compare_start_date?: string
+    compare_end_date?: string
   }): Promise<CategoryBreakdownResponse> => {
     return apiClient.get<CategoryBreakdownResponse>('/api/v1/summary/category-breakdown', {
       params: filters as Record<string, string>,

@@ -27,6 +27,7 @@ import {
   Landmark,
   Wallet,
   Flag,
+  Sparkles,
 } from "lucide-react"
 
 import Link from "next/link"
@@ -219,6 +220,9 @@ export default function Sidebar({ isMobileMenuOpen: externalOpen, setIsMobileMen
                   </div>
                 )}
                 <div className="space-y-1">
+                  <NavItem href="/advisor" icon={Sparkles}>
+                    Advisor
+                  </NavItem>
                   <NavItem href="/insights" icon={BarChart3}>
                     Insights
                   </NavItem>

@@ -1,11 +1,12 @@
 "use client"
 
 /**
- * Savings tips generated from the user's own patterns. Cached server-side;
- * shows what's cached immediately and refreshes once when it's stale.
+ * Savings tips generated from the user's own patterns. Cached server-side and
+ * shown as-is; new tips are generated only when the user asks (each run spends
+ * an advisor request), never automatically.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Lightbulb, MessageCircle, RefreshCw } from 'lucide-react'
 import { advisorApi, type Tip, type TipsResponse } from '@/lib/api'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,27 +18,22 @@ function formatSaving(amount: number): string {
 
 /**
  * The panel remounts every time the welcome screen reappears ("New chat"), so
- * the parent owns the once-per-visit auto-refresh decision (`autoRefresh` /
- * `onAutoRefresh`) and keeps the latest tips (`onUpdate`) — otherwise each
- * remount would regenerate tips and spend a daily request.
+ * the parent keeps the latest tips (`onUpdate`) to seed the next mount.
  */
 export function TipsPanel({
   initial,
   onAsk,
   onUpdate,
-  autoRefresh,
-  onAutoRefresh,
 }: {
   initial: TipsResponse
   onAsk: (prompt: string) => void
   onUpdate: (tips: TipsResponse) => void
-  autoRefresh: boolean
-  onAutoRefresh: () => void
 }) {
   const [tips, setTips] = useState<Tip[]>(initial.tips)
+  const [generated, setGenerated] = useState(initial.generated_at != null)
+  const [stale, setStale] = useState(initial.stale)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const started = useRef(false)
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
@@ -45,6 +41,8 @@ export function TipsPanel({
     try {
       const res = await advisorApi.refreshTips()
       setTips(res.tips)
+      setGenerated(true)
+      setStale(false)
       onUpdate(res)
     } catch (err) {
       setError(getApiErrorMessage(err, "Couldn't refresh tips"))
@@ -52,15 +50,6 @@ export function TipsPanel({
       setRefreshing(false)
     }
   }, [onUpdate])
-
-  // Regenerate stale tips (new day / new transactions) at most once per visit.
-  useEffect(() => {
-    if (autoRefresh && !started.current) {
-      started.current = true
-      onAutoRefresh()
-      refresh()
-    }
-  }, [autoRefresh, onAutoRefresh, refresh])
 
   if (!initial.enabled) return null
 
@@ -80,11 +69,16 @@ export function TipsPanel({
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-60 px-2 py-1 rounded-md hover:bg-accent transition-colors"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
-          {refreshing ? 'Analysing…' : 'Refresh'}
+          {refreshing ? 'Analysing…' : generated ? 'Refresh' : 'Generate'}
         </button>
       </div>
 
       {error && <p className="text-xs text-negative">{error}</p>}
+      {stale && tips.length > 0 && !refreshing && (
+        <p className="text-xs text-muted-foreground">
+          Based on older data — refresh for ideas that include your latest transactions.
+        </p>
+      )}
 
       {loadingFirst ? (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -99,7 +93,9 @@ export function TipsPanel({
       ) : tips.length === 0 ? (
         !error && (
           <p className="text-sm text-muted-foreground">
-            Not enough recent spending to spot patterns yet. Upload a statement and check back.
+            {generated
+              ? 'Not enough recent spending to spot patterns yet. Upload a statement and check back.'
+              : 'Generate personalised ideas from your recent spending. Each run uses one advisor request.'}
           </p>
         )
       ) : (

@@ -64,8 +64,6 @@ export function AdvisorView() {
   const { toast } = useToast()
   const [threads, setThreads] = useState<AdvisorThread[]>([])
   const [tips, setTips] = useState<TipsResponse | null>(null)
-  // Auto-refresh stale tips once per visit, not once per welcome-screen mount.
-  const [tipsAutoTried, setTipsAutoTried] = useState(false)
   const [booting, setBooting] = useState(true)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -80,7 +78,6 @@ export function AdvisorView() {
   const loadToken = useRef(0)
 
   const onTipsUpdate = useCallback((res: TipsResponse) => setTips(res), [])
-  const onTipsAutoRefresh = useCallback(() => setTipsAutoTried(true), [])
 
   const enabled = tips?.enabled ?? true
   const firstName = user?.full_name?.split(' ')[0]
@@ -309,8 +306,6 @@ export function AdvisorView() {
                     initial={tips}
                     onAsk={send}
                     onUpdate={onTipsUpdate}
-                    autoRefresh={tips.enabled && tips.stale && !tipsAutoTried}
-                    onAutoRefresh={onTipsAutoRefresh}
                   />
                 )}
               </div>
